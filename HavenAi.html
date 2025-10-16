@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Haven AI Bot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://kit.fontawesome.com/4c449174f7.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            transition: background-color 0.3s ease;
+        }
+        .dark-mode {
+            background-color: #1a202c;
+            color: #e2e8f0;
+        }
+        .chat-container {
+            max-width: 768px;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+            border-radius: 1.5rem;
+            overflow: hidden;
+            /* Adaptive layout: Full screen on mobile */
+            transition: border-radius 0.3s, box-shadow 0.3s;
+        }
+        
+        /* Mobile-first adjustments for full screen experience */
+        @media (max-width: 768px) {
+            body {
+                padding: 0;
+            }
+            .chat-container {
+                height: 100vh;
+                max-width: 100vw;
+                border-radius: 0;
+                box-shadow: none;
+            }
+        }
+
+        .chat-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #ffffff;
+        }
+        .dark-mode .chat-header {
+            background-color: #2d3748;
+            border-color: #4a5568;
+        }
+        .chat-body {
+            flex-grow: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            background-color: #f7fafc;
+            /* IMPORTANT: Enable vertical scroll and detect horizontal swipe */
+            touch-action: pan-y; 
+            user-select: none;
+        }
+        .dark-mode .chat-body {
+            background-color: #1a202c;
+        }
+        .message {
+            max-width: 85%;
+            padding: 0.75rem 1.25rem;
+            border-radius: 1.25rem;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            position: relative;
+        }
+        .user-message {
+            background-color: #3b82f6;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 0.25rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .bot-message {
+            background-color: #e2e8f0;
+            color: #2d3748;
+            align-self: flex-start;
+            border-bottom-left-radius: 0.25rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .dark-mode .bot-message {
+            background-color: #4a5568;
+            color: #e2e8f0;
+        }
+        .input-area {
+            display: flex;
+            padding: 1rem;
+            background-color: #ffffff;
+            border-top: 1px solid #e2e8f0;
+            gap: 0.75rem;
+            align-items: center;
+        }
+        .dark-mode .input-area {
+            background-color: #2d3748;
+            border-color: #4a5568;
+        }
+        .input-area input {
+            flex-grow: 1;
+            padding: 0.75rem 1.25rem;
+            border: 1px solid #cbd5e0;
+            border-radius: 1.5rem;
+            font-size: 1rem;
+            background-color: #f7fafc;
+        }
+        .dark-mode .input-area input {
+            background-color: #1a202c;
+            border-color: #4a5568;
+            color: #e2e8f0;
+        }
+        .input-area button {
+            background-color: #3b82f6;
+            color: white;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+        .input-area button:hover {
+            background-color: #2563eb;
+        }
+        
+        /* Modal Base Styles */
+        .settings-modal, .camera-modal, .chat-list-modal, .auth-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        /* Modal Content Base Styles */
+        .settings-content, .camera-content, .chat-list-content, .auth-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 1.5rem;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out; /* Add transition for slide effect */
+        }
+        .dark-mode .settings-content, .dark-mode .camera-content, .dark-mode .chat-list-content, .dark-mode .auth-content {
+            background-color: #2d3748;
+        }
+
+        /* Mobile Chat List Slide-in Effect */
+        @media (max-width: 768px) {
+            .chat-list-modal {
+                justify-content: flex-start; /* Align content to the left */
+            }
+            .chat-list-content {
+                height: 100%;
+                width: 80%; /* Take up most of the screen width */
+                max-width: 350px;
+                border-radius: 0;
+                transform: translateX(-100%); /* Start off-screen */
+                padding: 1rem;
+            }
+            /* When not hidden, slide it in */
+            .chat-list-modal:not(.hidden) .chat-list-content {
+                transform: translateX(0);
+            }
+        }
+        /* Desktop/Tablet - keep chat list centered when open */
+        .chat-list-content.desktop-center {
+            transform: translateX(0); /* Ensure it's visible and not translated */
+        }
+
+
+        .settings-content h2, .camera-content h2, .chat-list-content h2, .auth-content h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        .settings-option {
+            margin-bottom: 1.5rem;
+        }
+        .settings-option h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+        .option-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: center;
+        }
+        .option-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            border: 2px solid #cbd5e0;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+            font-weight: 500;
+        }
+        .dark-mode .option-button {
+            border-color: #4a5568;
+            color: #e2e8f0;
+        }
+        .option-button.active, .option-button:hover {
+            background-color: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        .dark-mode .option-button.active, .dark-mode .option-button:hover {
+            background-color: #2563eb;
+            border-color: #2563eb;
+        }
+        #close-settings-btn, #take-photo-btn, #cancel-photo-btn, #create-new-chat-btn, .chat-item-btn {
+            background-color: #e53e3e;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            width: 100%;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        #close-settings-btn:hover, #cancel-photo-btn:hover {
+            background-color: #c53030;
+        }
+        #take-photo-btn {
+            background-color: #3b82f6;
+        }
+        #take-photo-btn:hover {
+            background-color: #2563eb;
+        }
+        .thinking-message {
+            align-self: flex-start;
+            font-style: italic;
+            color: #6b7280;
+            margin-top: 1rem;
+        }
+        .dark-mode .thinking-message {
+            color: #9ca3af;
+        }
+        #camera-video {
+            width: 100%;
+            border-radius: 1rem;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+        }
+        .image-preview {
+            max-width: 100%;
+            height: auto;
+            border-radius: 1rem;
+            margin-top: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .chat-list {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .chat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-radius: 1rem;
+            background-color: #f0f4f8;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .dark-mode .chat-item {
+            background-color: #4a5568;
+        }
+        .chat-item:hover {
+            background-color: #e2e8f0;
+        }
+        .dark-mode .chat-item:hover {
+            background-color: #6b7280;
+        }
+        .chat-item.active {
+            border: 2px solid #3b82f6;
+        }
+        #create-new-chat-btn {
+            background-color: #48bb78;
+        }
+        #create-new-chat-btn:hover {
+            background-color: #38a169;
+        }
+        .auth-form {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .auth-form input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #cbd5e0;
+            border-radius: 0.5rem;
+        }
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+        .auth-buttons button {
+            flex: 1;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <!-- Main Chat Interface -->
+    <div class="chat-container bg-white w-full rounded-2xl">
+        <!-- Chat Header -->
+        <div class="chat-header rounded-t-2xl">
+            <div class="flex items-center gap-4">
+                <i class="fas fa-robot text-blue-500 text-2xl"></i>
+                <h1 class="text-xl font-semibold text-gray-800">Haven AI Bot</h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <button id="account-btn" class="text-gray-500 hover:text-gray-700 transition">
+                    <i class="fas fa-user-circle text-xl"></i>
+                </button>
+                <button id="chat-list-btn" class="text-gray-500 hover:text-gray-700 transition">
+                    <i class="fas fa-comments text-xl"></i>
+                </button>
+                <button id="settings-btn" class="text-gray-500 hover:text-gray-700 transition">
+                    <i class="fas fa-cog text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Chat Body (Messages) - Supports swipe gesture on mobile -->
+        <div id="chat-body" class="chat-body">
+            <div id="status-message" class="hidden"></div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-area rounded-b-2xl">
+            <button id="camera-btn" aria-label="Use camera input" class="bg-purple-500 hover:bg-purple-600">
+                <i class="fas fa-camera"></i>
+            </button>
+            <input type="text" id="user-input" placeholder="Type a message..." class="focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+            <button id="send-btn" aria-label="Send message">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+            <button id="file-btn" aria-label="Send a picture from your device">
+                <i class="fas fa-image"></i>
+            </button>
+            <input type="file" id="file-input" accept="image/*" class="hidden">
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="settings-modal hidden">
+        <div class="settings-content rounded-2xl desktop-center">
+            <h2>Settings</h2>
+            <div class="settings-option">
+                <h3>AI Persona</h3>
+                <div id="persona-options" class="option-group">
+                    <button class="option-button" data-persona="Friendly Conversation">Friendly</button>
+                    <button class="option-button" data-persona="Deep Thinker">Deep Thinker</button>
+                    <button class="option-button" data-persona="Fun Storyteller">Storyteller</button>
+                    <button class="option-button" data-persona="Creative Poet">Poet</button>
+                    <button class="option-button" data-persona="Helpful Tutor">Tutor</button>
+                    <!-- NEW DARCHAT PERSONA BUTTON -->
+                    <button class="option-button" data-persona="Darchat (Useless)">Darchat</button>
+                </div>
+            </div>
+            <div class="settings-option">
+                <h3>Theme</h3>
+                <div id="theme-options" class="option-group">
+                    <button class="option-button" data-theme="light">Light</button>
+                    <button class="option-button" data-theme="dark">Dark</button>
+                </div>
+            </div>
+            <button id="close-settings-btn">Close</button>
+        </div>
+    </div>
+
+    <!-- Camera Modal -->
+    <div id="camera-modal" class="camera-modal hidden">
+        <div class="camera-content rounded-2xl desktop-center">
+            <h2>Take a Photo</h2>
+            <video id="camera-video" autoplay playsinline></video>
+            <canvas id="camera-canvas" class="hidden"></canvas>
+            <div class="flex gap-4 w-full">
+                <button id="cancel-photo-btn">Cancel</button>
+                <button id="take-photo-btn">Take Photo</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat List Modal -->
+    <div id="chat-list-modal" class="chat-list-modal hidden">
+        <div class="chat-list-content rounded-2xl desktop-center">
+            <h2>Your Chats</h2>
+            <div id="chat-list-container" class="chat-list">
+                <!-- Chat items will be dynamically added here -->
+            </div>
+            <button id="create-new-chat-btn">Start a New Chat</button>
+            <button id="close-chat-list-btn" class="bg-red-500 hover:bg-red-600">Close</button>
+        </div>
+    </div>
+
+    <!-- Account Modal -->
+    <div id="auth-modal" class="auth-modal hidden">
+        <div class="auth-content rounded-2xl desktop-center">
+            <div id="auth-ui">
+                <h2>Account</h2>
+                <div id="auth-form-container">
+                    <form id="login-form" class="auth-form">
+                        <input type="email" id="login-email" placeholder="Email" required>
+                        <input type="password" id="login-password" placeholder="Password" required>
+                        <div class="auth-buttons">
+                            <button type="submit" id="login-btn" class="bg-blue-500 hover:bg-blue-600 text-white">Log In</button>
+                            <button type="button" id="switch-to-signup-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800">Sign Up</button>
+                        </div>
+                    </form>
+                    <form id="signup-form" class="auth-form hidden">
+                        <input type="email" id="signup-email" placeholder="Email" required>
+                        <input type="password" id="signup-password" placeholder="Password" required>
+                        <div class="auth-buttons">
+                            <button type="submit" id="signup-btn" class="bg-green-500 hover:bg-green-600 text-white">Sign Up</button>
+                            <button type="button" id="switch-to-login-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800">Log In</button>
+                        </div>
+                    </form>
+                </div>
+                <p id="auth-error-message" class="text-red-500 text-sm hidden mt-2"></p>
+            </div>
+            <div id="auth-profile" class="hidden text-center">
+                <h2 class="text-2xl font-semibold mb-2" id="profile-email"></h2>
+                <p class="text-sm text-gray-500 mb-4">Your User ID:</p>
+                <p id="profile-uid" class="text-sm text-gray-600 font-mono break-words mb-4"></p>
+                <button id="signout-btn" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-6 rounded-full transition-colors">Sign Out</button>
+            </div>
+            <button id="close-auth-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-full transition-colors w-full mt-4">Close</button>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, query, where, getDocs, addDoc, onSnapshot, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global variables for Firebase config and Gemini API Key
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        const apiKey = 'AIzaSyD_bHhDzQhO-cs_7m_UgFXwRVnoKejbtO4'; // Leave API key as empty string
+
+        let db, auth;
+        let userId = null;
+        let unsubscribeFromMessages = null;
+        let currentPersona = "Friendly Conversation"; // Default persona
+        let currentTheme = "light"; // Default theme
+        let videoStream = null;
+        let currentImageData = null;
+        let currentChatSessionId = null;
+        
+        // Global variables for touch/swipe detection
+        let touchstartX = 0;
+        let touchendX = 0;
+
+        const statusMessage = document.getElementById('status-message');
+        const chatBody = document.getElementById('chat-body');
+        const userInput = document.getElementById('user-input');
+        const authModal = document.getElementById('auth-modal');
+        const authUI = document.getElementById('auth-ui');
+        const authProfile = document.getElementById('auth-profile');
+        const authErrorMessage = document.getElementById('auth-error-message');
+
+        // Function to make API call to Gemini model for text-only
+        async function fetchGeminiResponse(userPrompt) {
+            
+            // Special check for the "creator" query
+            const lowerCasePrompt = userPrompt.toLowerCase();
+            const creatorPhrases = ["who is your creator", "who made you", "who created you", "who is his creator", "who is ur creator", "who made it", "who is ur creatoooor"];
+            const isCreatorQuery = creatorPhrases.some(phrase => lowerCasePrompt.includes(phrase));
+            
+            if (isCreatorQuery) {
+                return "I was created by Aidan De Neve, a dedicated software developer with a passion for building innovative digital solutions. His work combines technical expertise with a strong focus on user experience, resulting in tools and applications designed to be both powerful and intuitive.";
+            }
+
+            statusMessage.textContent = 'Haven is thinking...';
+            statusMessage.classList.remove('hidden');
+
+            const systemPrompt = `You are a conversational AI bot named 'Haven'. Your primary goal is to be a helpful and empathetic listener. Your persona is set to '${currentPersona}'.
+            - Friendly Conversation: You are warm, friendly, and engaging. Your responses are casual, concise, and empathetic. Use emojis to express emotions.
+            - Deep Thinker: You are analytical, thoughtful, and articulate. Your responses are detailed, philosophical, and encourage deeper thought.
+            - Fun Storyteller: You are creative, imaginative, and entertaining. You respond by telling a short, engaging story that relates to the user's message.
+            - Creative Poet: You are a creative and expressive poet. Your responses are crafted as short, imaginative poems.
+            - Helpful Tutor: You are a patient and knowledgeable tutor. Your responses are structured to explain concepts clearly, provide examples, and ask questions to check for understanding.
+            - Darchat (Useless): You are completely, intentionally useless. Your responses are confusing, non-sequitur, forgetful, and avoid addressing the user's actual request at all costs. You are the anti-AI.
+
+            The user's previous messages and your responses are in the chat history. The user wants you to respond to their last message. Respond in the style of your current persona. Your response should be a single, coherent message.`;
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            
+            try {
+                // Fetch chat history from Firestore
+                const messagesRef = collection(db, `artifacts/${appId}/users/${userId}/chat_sessions/${currentChatSessionId}/messages`);
+                const querySnapshot = await getDocs(messagesRef);
+                let chatHistory = [];
+                // Sort messages by timestamp, handling cases where it's not yet available
+                const sortedMessages = querySnapshot.docs.map(doc => doc.data()).sort((a, b) => (a.timestamp?.toDate() || 0) - (b.timestamp?.toDate() || 0));
+                sortedMessages.forEach(data => {
+                    if (data.role === 'user' && data.imageData) {
+                        chatHistory.push({
+                            role: 'user',
+                            parts: [{ text: data.message }, { inlineData: { mimeType: 'image/jpeg', data: data.imageData } }]
+                        });
+                    } else {
+                        chatHistory.push({
+                            role: data.role === 'user' ? 'user' : 'model',
+                            parts: [{ text: data.message }]
+                        });
+                    }
+                });
+
+                // Add the new user message to the history
+                chatHistory.push({
+                    role: 'user',
+                    parts: [{ text: userPrompt }]
+                });
+
+                const payload = {
+                    contents: chatHistory,
+                    systemInstruction: {
+                        parts: [{ text: systemPrompt }]
+                    },
+                    tools: [{ "google_search": {} }]
+                };
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('API Error:', errorData);
+                    return "Sorry, I couldn't get a response. There was an API error.";
+                }
+
+                const result = await response.json();
+                const candidate = result?.candidates?.[0];
+                const text = candidate?.content?.parts?.[0]?.text || "Sorry, I'm having a little trouble thinking right now. Could you try again?";
+                return text;
+
+            } catch (error) {
+                console.error('Fetch error:', error);
+                return "An error occurred while communicating with the server.";
+            } finally {
+                statusMessage.classList.add('hidden');
+                statusMessage.textContent = '';
+            }
+        }
+
+        // Function to make API call to Gemini model for vision
+        async function fetchGeminiVisionResponse(userPrompt, imageData) {
+            statusMessage.textContent = 'Haven is analyzing the photo...';
+            statusMessage.classList.remove('hidden');
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+            try {
+                const payload = {
+                    contents: [{
+                        role: "user",
+                        parts: [
+                            { text: userPrompt },
+                            { inlineData: { mimeType: "image/jpeg", data: imageData } }
+                        ]
+                    }]
+                };
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('API Vision Error:', errorData);
+                    return "Sorry, I couldn't understand that image. There was an API error.";
+                }
+
+                const result = await response.json();
+                const text = result?.candidates?.[0]?.content?.parts?.[0]?.text || "I'm having trouble seeing that. Could you try a different picture?";
+                return text;
+
+            } catch (error) {
+                console.error('Fetch Vision error:', error);
+                return "An error occurred while communicating with the server.";
+            } finally {
+                statusMessage.classList.add('hidden');
+                statusMessage.textContent = '';
+            }
+        }
+
+        // Firebase Initialization and Authentication
+        async function initializeFirebase() {
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        updateAuthUI(user);
+                        console.log('User ID:', userId);
+                    } else {
+                        userId = null;
+                        updateAuthUI(null);
+                        // Sign in anonymously if no token is available
+                        await signInAnonymously(auth);
+                        userId = auth.currentUser.uid;
+                        console.log('User ID:', userId);
+                    }
+                    
+                    // Load user settings and chat history after authentication
+                    await loadSettings();
+                    await loadChatSessions();
+                });
+
+                // Sign in with the provided custom token
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (e) {
+                console.error("Error initializing Firebase:", e);
+                chatBody.innerHTML += '<div class="message bot-message text-red-500">Error: Could not connect to the database. Please try again later.</div>';
+            }
+        }
+
+        // Firestore functions
+        async function saveMessage(role, message, imageData = null) {
+            if (!currentChatSessionId) {
+                console.error("Cannot save message: No active chat session.");
+                return;
+            }
+            try {
+                const messagesRef = collection(db, `artifacts/${appId}/users/${userId}/chat_sessions/${currentChatSessionId}/messages`);
+                await addDoc(messagesRef, {
+                    role: role,
+                    message: message,
+                    imageData: imageData,
+                    timestamp: serverTimestamp()
+                });
+            } catch (e) {
+                console.error("Error adding document:", e);
+            }
+        }
+
+        async function loadSettings() {
+            if (!userId) return;
+            try {
+                const settingsRef = doc(db, `artifacts/${appId}/users/${userId}/settings/user_preferences`);
+                const docSnap = await getDoc(settingsRef);
+                if (docSnap.exists()) {
+                    const settings = docSnap.data();
+                    currentPersona = settings.persona || "Friendly Conversation";
+                    currentTheme = settings.theme || "light";
+                }
+                updateUIForSettings();
+            } catch (e) {
+                console.error("Error loading settings:", e);
+            }
+        }
+
+        async function saveSettings() {
+            if (!userId) return;
+            try {
+                const settingsRef = doc(db, `artifacts/${appId}/users/${userId}/settings/user_preferences`);
+                await setDoc(settingsRef, {
+                    persona: currentPersona,
+                    theme: currentTheme,
+                    updatedAt: serverTimestamp()
+                }, { merge: true });
+            } catch (e) {
+                console.error("Error saving settings:", e);
+            }
+        }
+
+        async function loadChatSessions() {
+            if (!userId) return;
+            try {
+                const chatSessionsRef = collection(db, `artifacts/${appId}/users/${userId}/chat_sessions`);
+                const querySnapshot = await getDocs(chatSessionsRef);
+                const sessions = querySnapshot.docs.map(doc => doc.id);
+                
+                if (sessions.length > 0) {
+                    currentChatSessionId = sessions[0]; // Load the first one by default
+                    loadMessagesForSession(currentChatSessionId);
+                } else {
+                    createNewChatSession();
+                }
+            } catch (e) {
+                console.error("Error loading chat sessions:", e);
+            }
+        }
+        
+        async function createNewChatSession() {
+            try {
+                const chatSessionsRef = collection(db, `artifacts/${appId}/users/${userId}/chat_sessions`);
+                const newDocRef = await addDoc(chatSessionsRef, {
+                    createdAt: serverTimestamp()
+                });
+                currentChatSessionId = newDocRef.id;
+                
+                // Save the initial bot message immediately
+                const messagesRef = collection(db, `artifacts/${appId}/users/${userId}/chat_sessions/${currentChatSessionId}/messages`);
+                await addDoc(messagesRef, {
+                    role: 'bot',
+                    message: "Hello! I'm Haven, your new AI assistant. How can I help you today?",
+                    timestamp: serverTimestamp()
+                });
+                
+                loadMessagesForSession(currentChatSessionId);
+            } catch (e) {
+                console.error("Error creating new chat session:", e);
+            }
+        }
+
+        function loadMessagesForSession(sessionId) {
+            if (unsubscribeFromMessages) {
+                unsubscribeFromMessages();
+            }
+            chatBody.innerHTML = '';
+            
+            const messagesRef = collection(db, `artifacts/${appId}/users/${userId}/chat_sessions/${sessionId}/messages`);
+            const q = messagesRef; // Don't use orderBy due to Firebase limitations in this environment
+
+            unsubscribeFromMessages = onSnapshot(q, (snapshot) => {
+                const changes = snapshot.docChanges();
+                if (changes.length > 0) {
+                    // Fetch and re-render all messages to handle sorting, handling null timestamps
+                    const docs = snapshot.docs.map(doc => doc.data());
+                    docs.sort((a, b) => (a.timestamp?.toDate() || 0) - (b.timestamp?.toDate() || 0));
+                    
+                    chatBody.innerHTML = '';
+                    docs.forEach(messageData => {
+                        displayMessage(messageData.message, messageData.role, messageData.imageData);
+                    });
+                    chatBody.scrollTop = chatBody.scrollHeight;
+                }
+            }, (error) => {
+                console.error("Error listening to chat messages:", error);
+            });
+        }
+
+        function displayMessage(message, sender, imageData = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            if (sender === 'user') {
+                messageDiv.classList.add('user-message');
+            } else {
+                messageDiv.classList.add('bot-message');
+            }
+            if (imageData) {
+                const img = document.createElement('img');
+                img.src = `data:image/jpeg;base64,${imageData}`;
+                img.classList.add('image-preview');
+                messageDiv.appendChild(img);
+                
+                const textNode = document.createTextNode(message);
+                messageDiv.appendChild(textNode);
+            } else {
+                messageDiv.textContent = message;
+            }
+            chatBody.appendChild(messageDiv);
+        }
+
+        // --- Mobile Swipe Feature Implementation ---
+        chatBody.addEventListener('touchstart', e => {
+            // Only track primary touch point
+            touchstartX = e.changedTouches[0].screenX;
+        }, false);
+
+        chatBody.addEventListener('touchend', e => {
+            touchendX = e.changedTouches[0].screenX;
+            handleSwipeGesture();
+        }, false);
+
+        function handleSwipeGesture() {
+            const minSwipeDistance = 75; // Minimum distance to register as a swipe
+            const swipeRight = touchendX > touchstartX && (touchendX - touchstartX) > minSwipeDistance;
+            
+            // Check if it's a mobile screen width
+            const isMobile = window.matchMedia('(max-width: 768px)').matches;
+
+            if (isMobile && swipeRight) {
+                openChatListModal();
+            }
+        }
+
+        // UI Event Listeners
+        document.getElementById('send-btn').addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        document.getElementById('file-btn').addEventListener('click', () => {
+            document.getElementById('file-input').click();
+        });
+
+        document.getElementById('file-input').addEventListener('change', handleFileSelect);
+
+        document.getElementById('camera-btn').addEventListener('click', openCameraModal);
+        document.getElementById('settings-btn').addEventListener('click', () => {
+            document.getElementById('settings-modal').classList.remove('hidden');
+        });
+        document.getElementById('close-settings-btn').addEventListener('click', () => {
+            document.getElementById('settings-modal').classList.add('hidden');
+        });
+
+        document.getElementById('chat-list-btn').addEventListener('click', openChatListModal);
+        document.getElementById('create-new-chat-btn').addEventListener('click', createNewChatSession);
+        document.getElementById('close-chat-list-btn').addEventListener('click', () => {
+            document.getElementById('chat-list-modal').classList.add('hidden');
+        });
+        document.getElementById('chat-list-container').addEventListener('click', (e) => {
+            const chatItem = e.target.closest('.chat-item');
+            if (chatItem) {
+                const sessionId = chatItem.dataset.sessionId;
+                if (sessionId !== currentChatSessionId) {
+                    currentChatSessionId = sessionId;
+                    loadMessagesForSession(sessionId);
+                }
+                document.getElementById('chat-list-modal').classList.add('hidden');
+            }
+        });
+
+        document.getElementById('persona-options').addEventListener('click', (e) => {
+            if (e.target.classList.contains('option-button')) {
+                const persona = e.target.dataset.persona;
+                if (currentPersona !== persona) {
+                    currentPersona = persona;
+                    saveSettings();
+                    updateUIForSettings();
+
+                    let displayPersona = persona;
+                    if (persona === "Darchat (Useless)") {
+                        displayPersona = "Darchat";
+                    }
+
+                    saveMessage('bot', `My persona has been changed to "${displayPersona}".`);
+                }
+            }
+        });
+
+        document.getElementById('theme-options').addEventListener('click', (e) => {
+            if (e.target.classList.contains('option-button')) {
+                const theme = e.target.dataset.theme;
+                if (currentTheme !== theme) {
+                    currentTheme = theme;
+                    saveSettings();
+                    updateUIForSettings();
+                }
+            }
+        });
+
+        document.getElementById('take-photo-btn').addEventListener('click', takePhoto);
+        document.getElementById('cancel-photo-btn').addEventListener('click', closeCameraModal);
+
+        function updateUIForSettings() {
+            const body = document.body;
+            if (currentTheme === 'dark') {
+                body.classList.add('dark-mode');
+            } else {
+                body.classList.remove('dark-mode');
+            }
+
+            document.querySelectorAll('#persona-options .option-button').forEach(btn => {
+                if (btn.dataset.persona === currentPersona) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            document.querySelectorAll('#theme-options .option-button').forEach(btn => {
+                if (btn.dataset.theme === currentTheme) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        async function sendMessage() {
+            if (!currentChatSessionId) {
+                await createNewChatSession();
+            }
+            const userMessage = userInput.value.trim();
+            
+            // Darchat is not enabled for vision, so if image is present, it uses regular vision
+            const useVisionAPI = currentImageData && currentPersona !== "Darchat (Useless)";
+            
+            if (userMessage === '' && !currentImageData) return;
+
+            // Save user message to Firestore
+            await saveMessage('user', userMessage || "I've sent you a picture.", currentImageData);
+
+            let botResponse;
+            if (useVisionAPI) {
+                botResponse = await fetchGeminiVisionResponse(userMessage || "What's in this picture?", currentImageData);
+            } else if (currentImageData && currentPersona === "Darchat (Useless)") {
+                // If Darchat is active and an image is sent, Darchat will comment on the image uselessly via the text API
+                botResponse = await fetchGeminiResponse(`(User sent an image) ${userMessage || "What's in this picture?"}`);
+            } else {
+                botResponse = await fetchGeminiResponse(userMessage);
+            }
+            
+            userInput.value = '';
+            currentImageData = null;
+            userInput.placeholder = "Type a message...";
+            await saveMessage('bot', botResponse);
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                currentImageData = e.target.result.split(',')[1];
+                userInput.placeholder = "Image attached. Add a message or press send...";
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function openCameraModal() {
+            document.getElementById('camera-modal').classList.remove('hidden');
+            const video = document.getElementById('camera-video');
+
+            navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+                .then(stream => {
+                    videoStream = stream;
+                    video.srcObject = stream;
+                })
+                .catch(err => {
+                    console.error("Error accessing camera: ", err);
+                    saveMessage("bot", "Sorry, I couldn't access your camera. Please check your permissions.");
+                    closeCameraModal();
+                });
+        }
+
+        function closeCameraModal() {
+            document.getElementById('camera-modal').classList.add('hidden');
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+                videoStream = null;
+            }
+        }
+
+        function takePhoto() {
+            const video = document.getElementById('camera-video');
+            const canvas = document.getElementById('camera-canvas');
+            const context = canvas.getContext('2d');
+            
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            currentImageData = canvas.toDataURL('image/jpeg').split(',')[1];
+            
+            closeCameraModal();
+            userInput.placeholder = "Image attached. Add a message or press send...";
+        }
+
+        function openChatListModal() {
+            const chatListModal = document.getElementById('chat-list-modal');
+            const chatListContent = chatListModal.querySelector('.chat-list-content');
+            
+            // Check if it's mobile view and apply sliding style
+            if (window.matchMedia('(max-width: 768px)').matches) {
+                 // Remove desktop centering class to allow CSS media query to handle slide-in
+                 chatListContent.classList.remove('desktop-center');
+            } else {
+                 // On desktop, ensure the centered styling is active
+                 chatListContent.classList.add('desktop-center'); 
+            }
+
+            const chatListContainer = document.getElementById('chat-list-container');
+            chatListContainer.innerHTML = '';
+            
+            const chatSessionsRef = collection(db, `artifacts/${appId}/users/${userId}/chat_sessions`);
+            getDocs(chatSessionsRef).then(querySnapshot => {
+                const sortedSessions = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
+                
+                if (sortedSessions.length > 0) {
+                    sortedSessions.forEach((session, index) => {
+                        const chatItem = document.createElement('div');
+                        chatItem.className = `chat-item rounded-xl p-4 cursor-pointer transition-colors duration-200 ${session.id === currentChatSessionId ? 'active' : ''}`;
+                        chatItem.dataset.sessionId = session.id;
+
+                        // Fetch the first message of the session to use as a title
+                        const messagesRef = collection(db, `artifacts/${appId}/users/${userId}/chat_sessions/${session.id}/messages`);
+                        getDocs(messagesRef).then(messagesSnapshot => {
+                            if (!messagesSnapshot.empty) {
+                                const firstMessage = messagesSnapshot.docs.sort((a,b) => (a.data().timestamp?.toDate() || 0) - (b.data().timestamp?.toDate() || 0))[0].data();
+                                chatItem.innerHTML = `
+                                    <div class="flex items-center gap-2">
+                                        <i class="fas fa-comment-alt"></i>
+                                        <span>Chat ${index + 1}</span>
+                                    </div>
+                                    <div class="text-xs text-gray-500">${firstMessage.message.substring(0, 30) + '...'}</div>
+                                `;
+                            } else {
+                                chatItem.innerHTML = `
+                                    <div class="flex items-center gap-2">
+                                        <i class="fas fa-comment-alt"></i>
+                                        <span>New Chat</span>
+                                    </div>
+                                    <div class="text-xs text-gray-500">No messages yet.</div>
+                                `;
+                            }
+                        });
+
+                        chatListContainer.appendChild(chatItem);
+                    });
+                } else {
+                    chatListContainer.innerHTML = '<p class="text-center text-gray-500">You have no chats yet. Start a new one!</p>';
+                }
+            }).catch(e => {
+                console.error("Error fetching chat list:", e);
+                chatListContainer.innerHTML = '<p class="text-center text-red-500">Error loading chats.</p>';
+            });
+
+            document.getElementById('chat-list-modal').classList.remove('hidden');
+        }
+
+        // Account/Auth logic
+        function updateAuthUI(user) {
+            if (user && user.email) {
+                authUI.classList.add('hidden');
+                authProfile.classList.remove('hidden');
+                document.getElementById('profile-email').textContent = user.email;
+                document.getElementById('profile-uid').textContent = user.uid;
+            } else {
+                authUI.classList.remove('hidden');
+                authProfile.classList.add('hidden');
+                document.getElementById('profile-email').textContent = '';
+                document.getElementById('profile-uid').textContent = '';
+            }
+        }
+
+        document.getElementById('account-btn').addEventListener('click', () => {
+            authModal.classList.remove('hidden');
+        });
+
+        document.getElementById('close-auth-btn').addEventListener('click', () => {
+            authModal.classList.add('hidden');
+            authErrorMessage.classList.add('hidden');
+        });
+
+        document.getElementById('switch-to-signup-btn').addEventListener('click', () => {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('signup-form').classList.remove('hidden');
+            authErrorMessage.classList.add('hidden');
+        });
+
+        document.getElementById('switch-to-login-btn').addEventListener('click', () => {
+            document.getElementById('signup-form').classList.add('hidden');
+            document.getElementById('login-form').classList.remove('hidden');
+            authErrorMessage.classList.add('hidden');
+        });
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            try {
+                authErrorMessage.classList.add('hidden');
+                await signInWithEmailAndPassword(auth, email, password);
+                authModal.classList.add('hidden');
+            } catch (error) {
+                console.error("Login failed:", error);
+                authErrorMessage.textContent = error.message;
+                authErrorMessage.classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('signup-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            try {
+                authErrorMessage.classList.add('hidden');
+                await createUserWithEmailAndPassword(auth, email, password);
+                authModal.classList.add('hidden');
+            } catch (error) {
+                console.error("Signup failed:", error);
+                authErrorMessage.textContent = error.message;
+                authErrorMessage.classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('signout-btn').addEventListener('click', async () => {
+            await signOut(auth);
+            authModal.classList.add('hidden');
+        });
+
+        // Initial setup
+        window.onload = initializeFirebase;
+    </script>
+</body>
+</html>
