@@ -26,11 +26,8 @@
             box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
             border-radius: 1.5rem;
             overflow: hidden;
-            /* Adaptive layout: Full screen on mobile */
             transition: border-radius 0.3s, box-shadow 0.3s;
         }
-        
-        /* Mobile-first adjustments for full screen experience */
         @media (max-width: 768px) {
             body {
                 padding: 0;
@@ -42,14 +39,15 @@
                 box-shadow: none;
             }
         }
-
-        .chat-header {
+        .chat-header, .input-area {
             padding: 1rem 1.5rem;
+            background-color: #ffffff;
+        }
+        .chat-header {
             border-bottom: 1px solid #e2e8f0;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background-color: #ffffff;
         }
         .dark-mode .chat-header {
             background-color: #2d3748;
@@ -63,7 +61,6 @@
             flex-direction: column;
             gap: 1rem;
             background-color: #f7fafc;
-            /* IMPORTANT: Enable vertical scroll and detect horizontal swipe */
             touch-action: pan-y; 
             user-select: none;
         }
@@ -99,12 +96,10 @@
             color: #e2e8f0;
         }
         .input-area {
-            display: flex;
-            padding: 1rem;
-            background-color: #ffffff;
             border-top: 1px solid #e2e8f0;
             gap: 0.75rem;
             align-items: center;
+            display: flex;
         }
         .dark-mode .input-area {
             background-color: #2d3748;
@@ -137,9 +132,8 @@
         .input-area button:hover {
             background-color: #2563eb;
         }
-        
         /* Modal Base Styles */
-        .settings-modal, .camera-modal, .chat-list-modal, .auth-modal {
+        .modal {
             position: fixed;
             top: 0;
             left: 0;
@@ -151,9 +145,8 @@
             align-items: center;
             z-index: 1000;
         }
-        
         /* Modal Content Base Styles */
-        .settings-content, .camera-content, .chat-list-content, .auth-content {
+        .modal-content {
             background-color: white;
             padding: 2rem;
             border-radius: 1.5rem;
@@ -164,37 +157,12 @@
             flex-direction: column;
             align-items: center;
             gap: 1.5rem;
-            transition: transform 0.3s ease-out, opacity 0.3s ease-out; /* Add transition for slide effect */
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
         }
-        .dark-mode .settings-content, .dark-mode .camera-content, .dark-mode .chat-list-content, .dark-mode .auth-content {
+        .dark-mode .modal-content {
             background-color: #2d3748;
         }
-
-        /* Mobile Chat List Slide-in Effect */
-        @media (max-width: 768px) {
-            .chat-list-modal {
-                justify-content: flex-start; /* Align content to the left */
-            }
-            .chat-list-content {
-                height: 100%;
-                width: 80%; /* Take up most of the screen width */
-                max-width: 350px;
-                border-radius: 0;
-                transform: translateX(-100%); /* Start off-screen */
-                padding: 1rem;
-            }
-            /* When not hidden, slide it in */
-            .chat-list-modal:not(.hidden) .chat-list-content {
-                transform: translateX(0);
-            }
-        }
-        /* Desktop/Tablet - keep chat list centered when open */
-        .chat-list-content.desktop-center {
-            transform: translateX(0); /* Ensure it's visible and not translated */
-        }
-
-
-        .settings-content h2, .camera-content h2, .chat-list-content h2, .auth-content h2 {
+        .settings-content h2, .modal-content h2 {
             font-size: 1.5rem;
             font-weight: 600;
             margin-bottom: 1.5rem;
@@ -355,7 +323,7 @@
             </div>
         </div>
 
-        <!-- Chat Body (Messages) - Supports swipe gesture on mobile -->
+        <!-- Chat Body (Messages) -->
         <div id="chat-body" class="chat-body">
             <div id="status-message" class="hidden"></div>
         </div>
@@ -377,8 +345,8 @@
     </div>
 
     <!-- Settings Modal -->
-    <div id="settings-modal" class="settings-modal hidden">
-        <div class="settings-content rounded-2xl desktop-center">
+    <div id="settings-modal" class="modal hidden">
+        <div class="modal-content rounded-2xl desktop-center">
             <h2>Settings</h2>
             <div class="settings-option">
                 <h3>AI Persona</h3>
@@ -388,7 +356,6 @@
                     <button class="option-button" data-persona="Fun Storyteller">Storyteller</button>
                     <button class="option-button" data-persona="Creative Poet">Poet</button>
                     <button class="option-button" data-persona="Helpful Tutor">Tutor</button>
-                    <!-- NEW DARCHAT PERSONA BUTTON -->
                     <button class="option-button" data-persona="Darchat (Useless)">Darchat</button>
                 </div>
             </div>
@@ -404,8 +371,8 @@
     </div>
 
     <!-- Camera Modal -->
-    <div id="camera-modal" class="camera-modal hidden">
-        <div class="camera-content rounded-2xl desktop-center">
+    <div id="camera-modal" class="modal hidden">
+        <div class="modal-content rounded-2xl desktop-center">
             <h2>Take a Photo</h2>
             <video id="camera-video" autoplay playsinline></video>
             <canvas id="camera-canvas" class="hidden"></canvas>
@@ -417,8 +384,8 @@
     </div>
 
     <!-- Chat List Modal -->
-    <div id="chat-list-modal" class="chat-list-modal hidden">
-        <div class="chat-list-content rounded-2xl desktop-center">
+    <div id="chat-list-modal" class="modal hidden">
+        <div class="modal-content rounded-2xl desktop-center">
             <h2>Your Chats</h2>
             <div id="chat-list-container" class="chat-list">
                 <!-- Chat items will be dynamically added here -->
@@ -429,8 +396,8 @@
     </div>
 
     <!-- Account Modal -->
-    <div id="auth-modal" class="auth-modal hidden">
-        <div class="auth-content rounded-2xl desktop-center">
+    <div id="auth-modal" class="modal hidden">
+        <div class="modal-content rounded-2xl desktop-center">
             <div id="auth-ui">
                 <h2>Account</h2>
                 <div id="auth-form-container">
@@ -498,8 +465,6 @@
 
         // Function to make API call to Gemini model for text-only
         async function fetchGeminiResponse(userPrompt) {
-            
-            // Special check for the "creator" query
             const lowerCasePrompt = userPrompt.toLowerCase();
             const creatorPhrases = ["who is your creator", "who made you", "who created you", "who is his creator", "who is ur creator", "who made it", "who is ur creatoooor"];
             const isCreatorQuery = creatorPhrases.some(phrase => lowerCasePrompt.includes(phrase));
@@ -524,11 +489,9 @@
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
             
             try {
-                // Fetch chat history from Firestore
                 const messagesRef = collection(db, `artifacts/${appId}/users/${userId}/chat_sessions/${currentChatSessionId}/messages`);
                 const querySnapshot = await getDocs(messagesRef);
                 let chatHistory = [];
-                // Sort messages by timestamp, handling cases where it's not yet available
                 const sortedMessages = querySnapshot.docs.map(doc => doc.data()).sort((a, b) => (a.timestamp?.toDate() || 0) - (b.timestamp?.toDate() || 0));
                 sortedMessages.forEach(data => {
                     if (data.role === 'user' && data.imageData) {
@@ -544,7 +507,6 @@
                     }
                 });
 
-                // Add the new user message to the history
                 chatHistory.push({
                     role: 'user',
                     parts: [{ text: userPrompt }]
@@ -641,18 +603,15 @@
                     } else {
                         userId = null;
                         updateAuthUI(null);
-                        // Sign in anonymously if no token is available
                         await signInAnonymously(auth);
                         userId = auth.currentUser.uid;
                         console.log('User ID:', userId);
                     }
                     
-                    // Load user settings and chat history after authentication
                     await loadSettings();
                     await loadChatSessions();
                 });
 
-                // Sign in with the provided custom token
                 if (initialAuthToken) {
                     await signInWithCustomToken(auth, initialAuthToken);
                 } else {
@@ -739,7 +698,6 @@
                 });
                 currentChatSessionId = newDocRef.id;
                 
-                // Save the initial bot message immediately
                 const messagesRef = collection(db, `artifacts/${appId}/users/${userId}/chat_sessions/${currentChatSessionId}/messages`);
                 await addDoc(messagesRef, {
                     role: 'bot',
@@ -760,12 +718,11 @@
             chatBody.innerHTML = '';
             
             const messagesRef = collection(db, `artifacts/${appId}/users/${userId}/chat_sessions/${sessionId}/messages`);
-            const q = messagesRef; // Don't use orderBy due to Firebase limitations in this environment
+            const q = messagesRef;
 
             unsubscribeFromMessages = onSnapshot(q, (snapshot) => {
                 const changes = snapshot.docChanges();
                 if (changes.length > 0) {
-                    // Fetch and re-render all messages to handle sorting, handling null timestamps
                     const docs = snapshot.docs.map(doc => doc.data());
                     docs.sort((a, b) => (a.timestamp?.toDate() || 0) - (b.timestamp?.toDate() || 0));
                     
@@ -804,7 +761,6 @@
 
         // --- Mobile Swipe Feature Implementation ---
         chatBody.addEventListener('touchstart', e => {
-            // Only track primary touch point
             touchstartX = e.changedTouches[0].screenX;
         }, false);
 
@@ -817,7 +773,6 @@
             const minSwipeDistance = 75; // Minimum distance to register as a swipe
             const swipeRight = touchendX > touchstartX && (touchendX - touchstartX) > minSwipeDistance;
             
-            // Check if it's a mobile screen width
             const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
             if (isMobile && swipeRight) {
@@ -905,19 +860,11 @@
             }
 
             document.querySelectorAll('#persona-options .option-button').forEach(btn => {
-                if (btn.dataset.persona === currentPersona) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
+                btn.classList.toggle('active', btn.dataset.persona === currentPersona);
             });
 
             document.querySelectorAll('#theme-options .option-button').forEach(btn => {
-                if (btn.dataset.theme === currentTheme) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
+                btn.classList.toggle('active', btn.dataset.theme === currentTheme);
             });
         }
 
@@ -926,20 +873,16 @@
                 await createNewChatSession();
             }
             const userMessage = userInput.value.trim();
-            
-            // Darchat is not enabled for vision, so if image is present, it uses regular vision
             const useVisionAPI = currentImageData && currentPersona !== "Darchat (Useless)";
             
             if (userMessage === '' && !currentImageData) return;
 
-            // Save user message to Firestore
             await saveMessage('user', userMessage || "I've sent you a picture.", currentImageData);
 
             let botResponse;
             if (useVisionAPI) {
                 botResponse = await fetchGeminiVisionResponse(userMessage || "What's in this picture?", currentImageData);
             } else if (currentImageData && currentPersona === "Darchat (Useless)") {
-                // If Darchat is active and an image is sent, Darchat will comment on the image uselessly via the text API
                 botResponse = await fetchGeminiResponse(`(User sent an image) ${userMessage || "What's in this picture?"}`);
             } else {
                 botResponse = await fetchGeminiResponse(userMessage);
@@ -1005,15 +948,12 @@
 
         function openChatListModal() {
             const chatListModal = document.getElementById('chat-list-modal');
-            const chatListContent = chatListModal.querySelector('.chat-list-content');
+            const chatListContent = chatListModal.querySelector('.modal-content');
             
-            // Check if it's mobile view and apply sliding style
             if (window.matchMedia('(max-width: 768px)').matches) {
-                 // Remove desktop centering class to allow CSS media query to handle slide-in
-                 chatListContent.classList.remove('desktop-center');
+                chatListContent.classList.remove('desktop-center');
             } else {
-                 // On desktop, ensure the centered styling is active
-                 chatListContent.classList.add('desktop-center'); 
+                chatListContent.classList.add('desktop-center'); 
             }
 
             const chatListContainer = document.getElementById('chat-list-container');
@@ -1029,7 +969,6 @@
                         chatItem.className = `chat-item rounded-xl p-4 cursor-pointer transition-colors duration-200 ${session.id === currentChatSessionId ? 'active' : ''}`;
                         chatItem.dataset.sessionId = session.id;
 
-                        // Fetch the first message of the session to use as a title
                         const messagesRef = collection(db, `artifacts/${appId}/users/${userId}/chat_sessions/${session.id}/messages`);
                         getDocs(messagesRef).then(messagesSnapshot => {
                             if (!messagesSnapshot.empty) {
@@ -1141,3 +1080,4 @@
     </script>
 </body>
 </html>
+
