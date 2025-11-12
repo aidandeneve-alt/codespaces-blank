@@ -741,7 +741,7 @@
                         closeAuthBtn.classList.remove('hidden'); // Show close button when user is logged in
                         
                         // --- Role Status Logic ---
-                        const role = userId === CREATOR_UID ? "Creator" : "Member";
+                        const role = userId === CREATOR_UID ? "Creator" : "Normal User";
                         userRoleStatus.textContent = role;
                         userRoleStatus.classList.remove('hidden');
 
