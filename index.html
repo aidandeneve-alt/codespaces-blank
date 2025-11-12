@@ -479,13 +479,15 @@
 
         // --- CREATOR ID DEFINITION ---
         const CREATOR_UID = '2n3T4ft0MVeEboCCTeYZpKt2XUv1';
+        // --- SPECIAL USER ID DEFINITION ---
+        const SCP_LOVER_UID = '0HESRWT00oTWtmZ6TvTyTsyolG22'; 
         // --- WEATHER API KEY DEFINITION (NEW) ---
         const WEATHER_API_KEY = '9c5efcb178474446b5581046251211'; 
         // --- END NEW ---
 
         // Global variables for Firebase config and Gemini API Key
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const apiKey = 'AIzaSyD_bHhDzQhO-cs_7m_UgFXwRVnoKejbtO4'; // Leave this empty for runtime injection by the environment
+        const apiKey = ''; // Leave this empty for runtime injection by the environment
 
         // Your hardcoded Firebase configuration
         const firebaseConfig = {
@@ -741,16 +743,26 @@
                         closeAuthBtn.classList.remove('hidden'); // Show close button when user is logged in
                         
                         // --- Role Status Logic ---
-                        const role = userId === CREATOR_UID ? "Creator" : "Normal User";
+                        let role = "Member";
+                        if (userId === CREATOR_UID) {
+                            role = "Creator";
+                        } else if (userId === SCP_LOVER_UID) {
+                            role = "SCP Fan"; // Assign the custom name as the role
+                        }
                         userRoleStatus.textContent = role;
                         userRoleStatus.classList.remove('hidden');
 
                         // Clean up existing background classes
                         userRoleStatus.classList.remove('bg-blue-100', 'text-blue-800', 'dark:bg-blue-900', 'dark:text-blue-200');
                         userRoleStatus.classList.remove('bg-green-100', 'text-green-800', 'dark:bg-green-900', 'dark:text-green-200');
+                        // Remove potential previous special role classes (for safety)
+                        userRoleStatus.classList.remove('bg-purple-100', 'text-purple-800', 'dark:bg-purple-900', 'dark:text-purple-200'); 
 
                         if (role === "Creator") {
                             userRoleStatus.classList.add('bg-green-100', 'text-green-800', 'dark:bg-green-900', 'dark:text-green-200');
+                        } else if (role === "SCP Fan") {
+                             // Use a distinct color for this special member (Purple)
+                            userRoleStatus.classList.add('bg-purple-100', 'text-purple-800', 'dark:bg-purple-900', 'dark:text-purple-200');
                         } else {
                             userRoleStatus.classList.add('bg-blue-100', 'text-blue-800', 'dark:bg-blue-900', 'dark:text-blue-200');
                         }
@@ -940,6 +952,41 @@
             chatBody.appendChild(messageDiv);
         }
 
+        // --- UI Update & Settings Handlers ---
+
+        function updateUIForSettings() {
+            // 1. Theme
+            document.body.classList.toggle('dark-mode', currentTheme === 'dark');
+            
+            // 2. Layout
+            document.body.classList.toggle('mobile-view', currentLayout === 'mobile');
+            
+            // 3. Persona
+            document.querySelectorAll('#persona-options .option-button').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.persona === currentPersona);
+            });
+            
+            // 4. Theme
+            document.querySelectorAll('#theme-options .option-button').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.theme === currentTheme);
+            });
+
+            // 5. Layout
+            document.querySelectorAll('#layout-options .option-button').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.layout === currentLayout);
+            });
+            
+            // 6. City (NEW)
+            document.querySelectorAll('#city-options .option-button').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.city === currentCity);
+            });
+            
+            // Re-fetch weather if the city changed, but only if user is logged in
+            if (userId) {
+                fetchWeather(currentCity);
+            }
+        }
+        
         // --- AUTHENTICATION LOGIC ---
 
         function showAuthMessage(message, isError = false) {
@@ -1074,6 +1121,12 @@
             const prompt = userInput.value.trim();
             const data = currentImageData;
 
+            // Immediately check if the user is authenticated to prevent unlogged actions
+            if (!userId) {
+                displayMessage("Please log in or create an account to start chatting.", 'bot');
+                return;
+            }
+
             if (!prompt && !data) return;
 
             // Clear input and image data immediately
@@ -1189,246 +1242,130 @@
             // Convert canvas content to base64 JPEG data
             const dataURL = canvas.toDataURL('image/jpeg', 0.8); // 80% quality
             const base64String = dataURL.split(',')[1];
-            
+
+            // Set the image data and prompt
             currentImageData = base64String;
             userInput.value = "Describe this image in detail and suggest a fun activity related to it.";
             
             closeCameraModal();
+
+            // Notify user that the image is ready
+            displayMessage("Photo taken and ready to send! Enter your prompt or click Send.", "bot");
             userInput.focus();
-            
-            // Show a brief preview notification in the main chat
-            displayMessage("Photo captured! Enter your prompt and click Send.", "bot");
-        }
-        // --- End Camera Logic ---
-        
-        // --- UI Event Listeners ---
-        document.getElementById('send-btn').addEventListener('click', sendMessage);
-        userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
-
-        document.getElementById('file-btn').addEventListener('click', () => {
-            document.getElementById('file-input').click();
-        });
-
-        document.getElementById('file-input').addEventListener('change', handleFileSelect);
-        
-        // Camera modal listeners
-        document.getElementById('camera-btn').addEventListener('click', openCameraModal);
-        // We need to check if these elements exist before adding listeners, as they might be replaced on error
-        const initialCancelBtn = document.getElementById('cancel-photo-btn');
-        const initialTakeBtn = document.getElementById('take-photo-btn');
-        if(initialCancelBtn) initialCancelBtn.addEventListener('click', closeCameraModal);
-        if(initialTakeBtn) initialTakeBtn.addEventListener('click', takePhoto);
-        
-        // Settings modal listeners
-        document.getElementById('settings-btn').addEventListener('click', () => {
-            document.getElementById('settings-modal').classList.remove('hidden');
-            document.getElementById('settings-modal').classList.add('flex');
-            updateUIForSettings();
-        });
-        
-        document.getElementById('close-settings-btn').addEventListener('click', () => {
-            document.getElementById('settings-modal').classList.add('hidden');
-            document.getElementById('settings-modal').classList.remove('flex');
-            saveSettings(); // Save settings when modal closes
-        });
-
-        // ** ACCOUNT MODAL LISTENERS **
-        document.getElementById('account-btn').addEventListener('click', () => {
-            toggleAuthMode('status'); // Default to status tab
-            document.getElementById('auth-modal').classList.remove('hidden');
-            document.getElementById('auth-modal').classList.add('flex');
-        });
-        
-        document.getElementById('close-auth-btn').addEventListener('click', () => {
-            document.getElementById('auth-modal').classList.add('hidden');
-            document.getElementById('auth-modal').classList.remove('flex');
-            clearAuthMessage();
-        });
-
-        // Auth Modal Tab Switchers
-        document.getElementById('tab-status').addEventListener('click', () => toggleAuthMode('status'));
-        document.getElementById('tab-login').addEventListener('click', () => toggleAuthMode('login'));
-        document.getElementById('tab-signup').addEventListener('click', () => toggleAuthMode('signup'));
-        
-        // Switch buttons for easy navigation between login/signup
-        document.getElementById('switch-to-signup-btn').addEventListener('click', () => toggleAuthMode('signup'));
-        document.getElementById('switch-to-login-btn').addEventListener('click', () => toggleAuthMode('login'));
-
-        // Auth Form Submits
-        loginForm.addEventListener('submit', handleSignIn);
-        signupForm.addEventListener('submit', handleSignUp);
-        
-        // Sign Out Button
-        document.getElementById('signout-btn').addEventListener('click', handleSignOut);
-
-        // Chat List Modal Logic
-        document.getElementById('chat-list-btn').addEventListener('click', async () => {
-            await displayChatList();
-            document.getElementById('chat-list-modal').classList.remove('hidden');
-            document.getElementById('chat-list-modal').classList.add('flex');
-        });
-
-        document.getElementById('close-chat-list-btn').addEventListener('click', () => {
-            document.getElementById('chat-list-modal').classList.add('hidden');
-            document.getElementById('chat-list-modal').classList.remove('flex');
-        });
-
-        document.getElementById('create-new-chat-btn').addEventListener('click', async () => {
-            document.getElementById('chat-list-modal').classList.add('hidden');
-            document.getElementById('chat-list-modal').classList.remove('flex');
-            await createNewChatSession();
-        });
-
-        // Event delegation for chat session switching
-        document.getElementById('chat-list-container').addEventListener('click', (e) => {
-            const chatItem = e.target.closest('.chat-item');
-            if (chatItem) {
-                const sessionId = chatItem.dataset.sessionId;
-                if (sessionId && sessionId !== currentChatSessionId) {
-                    currentChatSessionId = sessionId;
-                    loadMessagesForSession(currentChatSessionId);
-                    document.getElementById('chat-list-modal').classList.add('hidden');
-                    document.getElementById('chat-list-modal').classList.remove('flex');
-                    // Update active state in UI
-                    document.querySelectorAll('.chat-item').forEach(item => {
-                        item.classList.remove('active');
-                    });
-                    chatItem.classList.add('active');
-                }
-            }
-        });
-        // --- End UI Event Listeners ---
-        
-        async function displayChatList() {
-            const container = document.getElementById('chat-list-container');
-            container.innerHTML = 'Loading chats...';
-
-            if (!userId || !db) return;
-            
-            try {
-                const chatSessionsRef = collection(db, `artifacts/${appId}/users/${userId}/chat_sessions`);
-                const snapshot = await getDocs(chatSessionsRef);
-                const sessions = [];
-
-                for (const doc of snapshot.docs) {
-                    const sessionData = doc.data();
-                    const messagesRef = collection(db, `artifacts/${appId}/users/${userId}/chat_sessions/${doc.id}/messages`);
-                    
-                    // Fetch the first message to use as the title/preview
-                    const messagesSnapshot = await getDocs(query(messagesRef));
-                    const sortedMessages = messagesSnapshot.docs.map(d => d.data()).sort((a, b) => (a.timestamp?.toDate() || 0) - (b.timestamp?.toDate() || 0));
-
-                    let previewText = "New Chat";
-                    if (sortedMessages.length > 0) {
-                        const firstUserMessage = sortedMessages.find(m => m.role === 'user' && m.message);
-                        previewText = firstUserMessage ? firstUserMessage.message.substring(0, 50) + (firstUserMessage.message.length > 50 ? '...' : '') : "New Chat";
-                    }
-
-                    sessions.push({
-                        id: doc.id,
-                        preview: previewText,
-                        createdAt: sessionData.createdAt?.toDate() || new Date()
-                    });
-                }
-                
-                // Sort by creation time (most recent first)
-                sessions.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-
-                container.innerHTML = ''; // Clear loading message
-
-                if (sessions.length === 0) {
-                    container.innerHTML = '<p class="text-center text-gray-500">No chats found. Start a new one!</p>';
-                } else {
-                    sessions.forEach(session => {
-                        const isActive = session.id === currentChatSessionId;
-                        const item = document.createElement('div');
-                        item.classList.add('chat-item', 'p-3', 'rounded-xl', 'cursor-pointer', 'transition-colors', isActive ? 'active' : 'hover:bg-gray-100');
-                        item.dataset.sessionId = session.id;
-                        item.innerHTML = `
-                            <p class="font-semibold text-gray-800 dark:text-gray-100 truncate">${session.preview}</p>
-                            <p class="text-xs text-gray-400">${session.createdAt.toLocaleDateString()}</p>
-                        `;
-                        container.appendChild(item);
-                    });
-                }
-                
-            } catch (e) {
-                console.error("Error displaying chat list:", e);
-                container.innerHTML = '<p class="text-center text-red-500">Error loading chat history.</p>';
-            }
         }
 
-        // --- Settings UI/Logic ---
-        function updateUIForSettings() {
-            // 1. Theme
-            document.body.classList.toggle('dark-mode', currentTheme === 'dark');
-            
-            // 2. Layout
-            document.body.classList.toggle('mobile-view', currentLayout === 'mobile');
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeFirebase();
 
-            // 3. Buttons (Persona, Theme, Layout, City)
-            document.querySelectorAll('.option-button').forEach(btn => {
-                // Determine the type of setting (e.g., 'persona', 'theme', 'layout', 'city')
-                const type = Object.keys(btn.dataset).find(key => key.startsWith('data-') && key !== 'data-');
-                const value = btn.dataset[type];
+            // Auth Modal Listeners
+            loginForm.addEventListener('submit', handleSignIn);
+            signupForm.addEventListener('submit', handleSignUp);
+            document.getElementById('signout-btn').addEventListener('click', handleSignOut);
+            document.getElementById('switch-to-signup-btn').addEventListener('click', () => toggleAuthMode('signup'));
+            document.getElementById('switch-to-login-btn').addEventListener('click', () => toggleAuthMode('login'));
+            document.getElementById('account-btn').addEventListener('click', () => {
+                // When opening via button, ensure 'status' is visible if logged in, and allow closing
+                toggleAuthMode('status');
+                authModal.classList.remove('hidden');
+                authModal.classList.add('flex');
+                closeAuthBtn.classList.remove('hidden');
+            });
+            closeAuthBtn.addEventListener('click', () => {
+                authModal.classList.add('hidden');
+                authModal.classList.remove('flex');
+            });
+            document.getElementById('tab-status').addEventListener('click', () => toggleAuthMode('status'));
+            document.getElementById('tab-login').addEventListener('click', () => toggleAuthMode('login'));
+            document.getElementById('tab-signup').addEventListener('click', () => toggleAuthMode('signup'));
 
-                btn.classList.remove('active');
-                if (type === 'persona' && value === currentPersona) {
-                    btn.classList.add('active');
-                } else if (type === 'theme' && value === currentTheme) {
-                    btn.classList.add('active');
-                } else if (type === 'layout' && value === currentLayout) {
-                    btn.classList.add('active');
-                } else if (type === 'city' && value === currentCity) { // NEW CITY LOGIC
-                    btn.classList.add('active');
+            // Chat Input Listeners
+            document.getElementById('send-btn').addEventListener('click', sendMessage);
+            document.getElementById('user-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendMessage();
                 }
             });
-        }
+            document.getElementById('file-btn').addEventListener('click', () => document.getElementById('file-input').click());
+            document.getElementById('file-input').addEventListener('change', handleFileSelect);
 
-        document.getElementById('persona-options').addEventListener('click', (e) => {
-            const btn = e.target.closest('.option-button');
-            if (btn && btn.dataset.persona) {
-                currentPersona = btn.dataset.persona;
-                updateUIForSettings();
-            }
-        });
+            // Camera Listeners
+            document.getElementById('camera-btn').addEventListener('click', openCameraModal);
+            
+            // Camera modal listeners are dynamically added and removed in the open/close functions, 
+            // but we need to ensure the initial ones are set up if they exist.
+            const initialCancelBtn = document.getElementById('cancel-photo-btn');
+            const initialTakePhotoBtn = document.getElementById('take-photo-btn');
+            if (initialCancelBtn) initialCancelBtn.addEventListener('click', closeCameraModal);
+            if (initialTakePhotoBtn) initialTakePhotoBtn.addEventListener('click', takePhoto);
+            
+            // Settings Listeners
+            document.getElementById('settings-btn').addEventListener('click', () => {
+                updateUIForSettings(); // Ensure UI reflects current state on open
+                document.getElementById('settings-modal').classList.remove('hidden');
+            });
+            document.getElementById('close-settings-btn').addEventListener('click', () => {
+                document.getElementById('settings-modal').classList.add('hidden');
+            });
 
-        document.getElementById('theme-options').addEventListener('click', (e) => {
-            const btn = e.target.closest('.option-button');
-            if (btn && btn.dataset.theme) {
-                currentTheme = btn.dataset.theme;
-                updateUIForSettings();
-            }
+            // Persona Option Listener
+            document.getElementById('persona-options').addEventListener('click', (e) => {
+                if (e.target.classList.contains('option-button')) {
+                    currentPersona = e.target.dataset.persona;
+                    saveSettings();
+                    updateUIForSettings();
+                }
+            });
+            
+            // Theme Option Listener
+            document.getElementById('theme-options').addEventListener('click', (e) => {
+                if (e.target.classList.contains('option-button')) {
+                    currentTheme = e.target.dataset.theme;
+                    saveSettings();
+                    updateUIForSettings();
+                }
+            });
+
+            // Layout Option Listener
+            document.getElementById('layout-options').addEventListener('click', (e) => {
+                if (e.target.classList.contains('option-button')) {
+                    currentLayout = e.target.dataset.layout;
+                    saveSettings();
+                    updateUIForSettings();
+                }
+            });
+            
+            // City Option Listener (NEW)
+            document.getElementById('city-options').addEventListener('click', (e) => {
+                if (e.target.classList.contains('option-button')) {
+                    const newCity = e.target.dataset.city;
+                    if (newCity !== currentCity) {
+                        currentCity = newCity;
+                        saveSettings();
+                        updateUIForSettings(); // This will trigger fetchWeather
+                    }
+                }
+            });
+
+
+            // Placeholder Chat List Modal Listeners (Functionality is currently basic)
+            document.getElementById('chat-list-btn').addEventListener('click', async () => {
+                // This is a placeholder for future complex chat management UI
+                displayMessage("Chat history viewing/switching is coming soon! For now, your most recent chat is loaded.", 'bot');
+            });
+            
+            document.getElementById('create-new-chat-btn').addEventListener('click', async () => {
+                 // This is a placeholder for future complex chat management UI
+                document.getElementById('chat-list-modal').classList.add('hidden');
+                await createNewChatSession();
+                displayMessage("New chat started! History cleared for this session.", 'bot');
+            });
+            
+            document.getElementById('close-chat-list-btn').addEventListener('click', () => {
+                document.getElementById('chat-list-modal').classList.add('hidden');
+            });
+
         });
-        
-        document.getElementById('layout-options').addEventListener('click', (e) => {
-            const btn = e.target.closest('.option-button');
-            if (btn && btn.dataset.layout) {
-                currentLayout = btn.dataset.layout;
-                updateUIForSettings();
-            }
-        });
-        
-        // NEW City Options Listener
-        document.getElementById('city-options').addEventListener('click', async (e) => {
-            const btn = e.target.closest('.option-button');
-            if (btn && btn.dataset.city) {
-                currentCity = btn.dataset.city;
-                updateUIForSettings();
-                await saveSettings();
-                await fetchWeather(currentCity); // Fetch new weather immediately
-            }
-        });
-        // --- End Settings UI/Logic ---
-        
-        // Initialize the application
-        initializeFirebase();
-        
     </script>
 </body>
 </html>
-
