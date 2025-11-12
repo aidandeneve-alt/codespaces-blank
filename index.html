@@ -18,36 +18,42 @@
             background-color: #1a202c;
             color: #e2e8f0;
         }
+        /* DESKTOP/CARD UI STYLES */
         .chat-container {
-            max-width: 768px;
-            height: 80vh;
+            max-width: 768px; /* Max width for desktop card */
+            width: 95%; /* Ensures it scales down nicely on smaller screens */
+            height: 90vh; /* Consistent tall height for the app card feel */
             display: flex;
             flex-direction: column;
             box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
             border-radius: 1.5rem;
             overflow: hidden;
-            transition: border-radius 0.3s, box-shadow 0.3s;
+            transition: all 0.3s ease;
         }
-        @media (max-width: 768px) {
-            body {
-                padding: 0;
-            }
-            .chat-container {
-                height: 100vh;
-                max-width: 100vw;
-                border-radius: 0;
-                box-shadow: none;
-            }
+        
+        /* MOBILE OVERRIDE STYLES (Enabled by JS toggling the 'mobile-view' class on the body) */
+        .mobile-view {
+            padding: 0 !important; /* Override p-4 */
+            align-items: flex-start !important; /* Override items-center */
+            justify-content: flex-start !important; /* Override justify-center */
+            min-height: 100vh;
         }
-        .chat-header, .input-area {
-            padding: 1rem 1.5rem;
-            background-color: #ffffff;
+        
+        .mobile-view .chat-container {
+            width: 100%;
+            height: 100vh;
+            max-width: none;
+            border-radius: 0;
+            box-shadow: none;
         }
+
         .chat-header {
+            padding: 1rem 1.5rem;
             border-bottom: 1px solid #e2e8f0;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background-color: #ffffff;
         }
         .dark-mode .chat-header {
             background-color: #2d3748;
@@ -61,8 +67,7 @@
             flex-direction: column;
             gap: 1rem;
             background-color: #f7fafc;
-            touch-action: pan-y; 
-            user-select: none;
+            padding-bottom: 7rem; /* Ensure last message is visible above input */
         }
         .dark-mode .chat-body {
             background-color: #1a202c;
@@ -76,6 +81,12 @@
             word-wrap: break-word;
             white-space: pre-wrap;
             position: relative;
+        }
+        .image-preview {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.75rem;
+            margin-bottom: 0.5rem;
         }
         .user-message {
             background-color: #3b82f6;
@@ -95,22 +106,49 @@
             background-color: #4a5568;
             color: #e2e8f0;
         }
+        
+        /* TIGHTER INPUT AREA STYLES */
         .input-area {
-            border-top: 1px solid #e2e8f0;
-            gap: 0.75rem;
-            align-items: center;
             display: flex;
+            padding: 0.5rem; /* Reduced padding for more space */
+            background-color: #ffffff;
+            border-top: 1px solid #e2e8f0;
+            gap: 0.4rem; /* Reduced gap between elements */
+            align-items: center;
+            position: sticky; 
+            bottom: 0;
+            width: 100%;
         }
         .dark-mode .input-area {
             background-color: #2d3748;
             border-color: #4a5568;
         }
+        
+        /* ADJUSTED BUTTON STYLES - FIXED SIZE */
+        .input-area button {
+            background-color: #3b82f6;
+            color: white;
+            border-radius: 50%;
+            width: 36px; 
+            height: 36px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.2s;
+            /* Using inline flex-shrink-0 for guaranteed non-shrinkage */
+            font-size: 0.9rem;
+        }
+        .input-area button:hover {
+            background-color: #2563eb;
+        }
+
+        /* ADJUSTED INPUT STYLES - SLIGHTLY SMALLER */
         .input-area input {
             flex-grow: 1;
-            padding: 0.75rem 1.25rem;
+            padding: 0.6rem 1rem;
             border: 1px solid #cbd5e0;
             border-radius: 1.5rem;
-            font-size: 1rem;
+            font-size: 0.95rem; 
             background-color: #f7fafc;
         }
         .dark-mode .input-area input {
@@ -118,206 +156,161 @@
             border-color: #4a5568;
             color: #e2e8f0;
         }
-        .input-area button {
-            background-color: #3b82f6;
-            color: white;
-            border-radius: 50%;
-            width: 44px;
-            height: 44px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: background-color 0.2s;
-        }
-        .input-area button:hover {
-            background-color: #2563eb;
-        }
-        /* Modal Base Styles */
-        .modal {
+        
+        /* MODAL STYLES */
+        .settings-modal, .camera-modal, .chat-list-modal, .auth-modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.6);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            padding: 1rem;
         }
-        /* Modal Content Base Styles */
-        .modal-content {
+        .settings-content, .camera-content, .chat-list-content, .auth-content {
             background-color: white;
-            padding: 2rem;
+            padding: 1.5rem;
             border-radius: 1.5rem;
-            width: 90%;
+            width: 100%;
             max-width: 500px;
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 1.5rem;
-            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+            max-height: 90vh;
+            overflow-y: auto;
         }
-        .dark-mode .modal-content {
+        .dark-mode .settings-content, .dark-mode .camera-content, .dark-mode .chat-list-content, .dark-mode .auth-content {
             background-color: #2d3748;
         }
-        .settings-content h2, .modal-content h2 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            text-align: center;
-        }
         .settings-option {
-            margin-bottom: 1.5rem;
-        }
-        .settings-option h3 {
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin-bottom: 0.75rem;
+            width: 100%;
+            margin-bottom: 1rem;
         }
         .option-group {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.75rem;
+            gap: 0.5rem;
             justify-content: center;
+            margin-top: 0.5rem;
         }
         .option-button {
-            padding: 0.75rem 1.5rem;
+            padding: 0.5rem 1rem;
             border-radius: 9999px;
-            border: 2px solid #cbd5e0;
-            cursor: pointer;
-            transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+            background-color: #e5e7eb;
+            color: #1f2937;
+            font-size: 0.875rem;
             font-weight: 500;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            min-width: 120px;
         }
         .dark-mode .option-button {
-            border-color: #4a5568;
+            background-color: #4a5568;
             color: #e2e8f0;
         }
-        .option-button.active, .option-button:hover {
+        .option-button.active {
             background-color: #3b82f6;
             color: white;
             border-color: #3b82f6;
         }
-        .dark-mode .option-button.active, .dark-mode .option-button:hover {
-            background-color: #2563eb;
-            border-color: #2563eb;
-        }
-        #close-settings-btn, #take-photo-btn, #cancel-photo-btn, #create-new-chat-btn, .chat-item-btn {
-            background-color: #e53e3e;
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 9999px;
-            width: 100%;
-            font-weight: 600;
-            transition: background-color 0.2s;
-        }
-        #close-settings-btn:hover, #cancel-photo-btn:hover {
-            background-color: #c53030;
-        }
-        #take-photo-btn {
+        .dark-mode .option-button.active {
             background-color: #3b82f6;
+            border-color: #3b82f6;
         }
-        #take-photo-btn:hover {
-            background-color: #2563eb;
+        .chat-list-content .chat-item {
+            border: 1px solid #cbd5e0;
         }
-        .thinking-message {
-            align-self: flex-start;
-            font-style: italic;
-            color: #6b7280;
-            margin-top: 1rem;
+        .dark-mode .chat-list-content .chat-item {
+            border: 1px solid #4a5568;
         }
-        .dark-mode .thinking-message {
-            color: #9ca3af;
+        .chat-list-content .chat-item.active {
+            background-color: #e0f2fe;
+            border-color: #3b82f6;
         }
-        #camera-video {
-            width: 100%;
-            border-radius: 1rem;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+        .dark-mode .chat-list-content .chat-item.active {
+            background-color: #313e4f;
+            border-color: #3b82f6;
         }
-        .image-preview {
-            max-width: 100%;
-            height: auto;
-            border-radius: 1rem;
-            margin-top: 0.5rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        .chat-list-content .chat-item {
+            margin-bottom: 0.5rem;
         }
         .chat-list {
             width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-        .chat-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem;
-            border-radius: 1rem;
-            background-color: #f0f4f8;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        .dark-mode .chat-item {
-            background-color: #4a5568;
-        }
-        .chat-item:hover {
-            background-color: #e2e8f0;
-        }
-        .dark-mode .chat-item:hover {
-            background-color: #6b7280;
-        }
-        .chat-item.active {
-            border: 2px solid #3b82f6;
-        }
-        #create-new-chat-btn {
-            background-color: #48bb78;
-        }
-        #create-new-chat-btn:hover {
-            background-color: #38a169;
-        }
-        .auth-form {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
         }
         .auth-form input {
             width: 100%;
-            padding: 0.75rem 1rem;
+            padding: 0.75rem;
             border: 1px solid #cbd5e0;
             border-radius: 0.5rem;
+            margin-bottom: 0.75rem;
+            background-color: #f7fafc;
+        }
+        .dark-mode .auth-form input {
+             background-color: #1a202c;
+             border-color: #4a5568;
+             color: #e2e8f0;
         }
         .auth-buttons {
             display: flex;
-            gap: 1rem;
+            gap: 0.5rem;
+            justify-content: space-between;
         }
         .auth-buttons button {
             flex: 1;
             padding: 0.75rem;
-            border-radius: 0.5rem;
+            border-radius: 9999px;
             font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        .tab-button.active {
+            border-bottom: 2px solid #3b82f6;
+            color: #3b82f6;
+        }
+        .auth-message {
+            background-color: #fef3c7; 
+            color: #92400e; 
+            padding: 0.75rem; 
+            border-radius: 0.5rem; 
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .dark-mode .auth-message {
+            background-color: #4a5568;
+            color: #f7fafc;
         }
     </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
 
-    <!-- Main Chat Interface -->
-    <div class="chat-container bg-white w-full rounded-2xl">
+    <!-- Main Chat Interface - HIDDEN until authenticated -->
+    <div id="main-chat-container" class="chat-container bg-white w-full rounded-2xl max-w-full hidden">
         <!-- Chat Header -->
         <div class="chat-header rounded-t-2xl">
             <div class="flex items-center gap-4">
                 <i class="fas fa-robot text-blue-500 text-2xl"></i>
                 <h1 class="text-xl font-semibold text-gray-800">Haven AI Bot</h1>
+                <!-- Role Status Badge (NEW) -->
+                <span id="user-role-status" class="text-xs font-medium px-2 py-0.5 rounded-full hidden"></span>
             </div>
             <div class="flex items-center gap-4">
-                <button id="account-btn" class="text-gray-500 hover:text-gray-700 transition">
+                <!-- Account Button -->
+                <button id="account-btn" class="text-gray-500 hover:text-gray-700 transition w-10 h-10 flex items-center justify-center rounded-full" aria-label="Account Settings">
                     <i class="fas fa-user-circle text-xl"></i>
                 </button>
-                <button id="chat-list-btn" class="text-gray-500 hover:text-gray-700 transition">
+                <!-- Chat History Button -->
+                <button id="chat-list-btn" class="text-gray-500 hover:text-gray-700 transition w-10 h-10 flex items-center justify-center rounded-full" aria-label="Chat History">
                     <i class="fas fa-comments text-xl"></i>
                 </button>
-                <button id="settings-btn" class="text-gray-500 hover:text-gray-700 transition">
+                <!-- Settings Button -->
+                <button id="settings-btn" class="text-gray-500 hover:text-gray-700 transition w-10 h-10 flex items-center justify-center rounded-full" aria-label="Bot Settings">
                     <i class="fas fa-cog text-xl"></i>
                 </button>
             </div>
@@ -325,188 +318,249 @@
 
         <!-- Chat Body (Messages) -->
         <div id="chat-body" class="chat-body">
-            <div id="status-message" class="hidden"></div>
+            <div id="status-message" class="hidden bot-message bg-yellow-100 text-yellow-800 p-2 rounded-lg text-sm italic self-center"></div>
         </div>
 
-        <!-- Input Area -->
+        <!-- Input Area - Using custom CSS for tightness -->
         <div class="input-area rounded-b-2xl">
-            <button id="camera-btn" aria-label="Use camera input" class="bg-purple-500 hover:bg-purple-600">
+            <!-- Camera and File buttons are now grouped on the left -->
+            <button id="camera-btn" aria-label="Use camera input" class="flex-shrink-0 bg-purple-500 hover:bg-purple-600">
                 <i class="fas fa-camera"></i>
             </button>
-            <input type="text" id="user-input" placeholder="Type a message..." class="focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-            <button id="send-btn" aria-label="Send message">
-                <i class="fas fa-paper-plane"></i>
-            </button>
-            <button id="file-btn" aria-label="Send a picture from your device">
+            <button id="file-btn" aria-label="Send a picture from your device" class="flex-shrink-0 bg-green-500 hover:bg-green-600">
                 <i class="fas fa-image"></i>
+            </button>
+            
+            <input type="text" id="user-input" placeholder="Type a message..." class="focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+            
+            <!-- Send button remains on the right -->
+            <button id="send-btn" aria-label="Send message" class="flex-shrink-0">
+                <i class="fas fa-paper-plane"></i>
             </button>
             <input type="file" id="file-input" accept="image/*" class="hidden">
         </div>
     </div>
 
     <!-- Settings Modal -->
-    <div id="settings-modal" class="modal hidden">
-        <div class="modal-content rounded-2xl desktop-center">
-            <h2>Settings</h2>
+    <div id="settings-modal" class="settings-modal hidden">
+        <div class="settings-content rounded-2xl">
+            <h2 class="text-2xl font-bold">Settings</h2>
+            
             <div class="settings-option">
-                <h3>AI Persona</h3>
+                <h3 class="text-lg font-semibold mb-2">AI Persona</h3>
                 <div id="persona-options" class="option-group">
-                    <button class="option-button" data-persona="Friendly Conversation">Friendly</button>
+                    <button class="option-button" data-persona="Friendly Guide">Friendly Guide</button>
                     <button class="option-button" data-persona="Deep Thinker">Deep Thinker</button>
-                    <button class="option-button" data-persona="Fun Storyteller">Storyteller</button>
+                    <button class="option-button" data-persona="Creative Storyteller">Storyteller</button>
                     <button class="option-button" data-persona="Creative Poet">Poet</button>
                     <button class="option-button" data-persona="Helpful Tutor">Tutor</button>
-                    <button class="option-button" data-persona="Darchat (Useless)">Darchat</button>
+                    <button class="option-button" data-persona="Darchat">Darchat</button>
                 </div>
             </div>
+            
             <div class="settings-option">
-                <h3>Theme</h3>
+                <h3 class="text-lg font-semibold mb-2">Theme</h3>
                 <div id="theme-options" class="option-group">
                     <button class="option-button" data-theme="light">Light</button>
                     <button class="option-button" data-theme="dark">Dark</button>
                 </div>
             </div>
-            <button id="close-settings-btn">Close</button>
+            
+            <!-- NEW LAYOUT OPTION -->
+            <div class="settings-option">
+                <h3 class="text-lg font-semibold mb-2">Layout</h3>
+                <div id="layout-options" class="option-group">
+                    <button class="option-button" data-layout="desktop">Desktop View</button>
+                    <button class="option-button" data-layout="mobile">Mobile Version</button>
+                </div>
+            </div>
+
+            <button id="close-settings-btn" class="bg-gray-400 hover:bg-gray-500 text-white font-semibold py-2 px-6 rounded-full transition-colors w-full max-w-xs">Close</button>
         </div>
     </div>
 
     <!-- Camera Modal -->
-    <div id="camera-modal" class="modal hidden">
-        <div class="modal-content rounded-2xl desktop-center">
-            <h2>Take a Photo</h2>
-            <video id="camera-video" autoplay playsinline></video>
+    <div id="camera-modal" class="camera-modal hidden">
+        <div class="camera-content rounded-2xl">
+            <h2 class="text-xl font-bold mb-4">Take a Photo</h2>
+            <video id="camera-video" autoplay playsinline class="w-full max-w-md rounded-lg shadow-xl mb-4"></video>
             <canvas id="camera-canvas" class="hidden"></canvas>
-            <div class="flex gap-4 w-full">
-                <button id="cancel-photo-btn">Cancel</button>
-                <button id="take-photo-btn">Take Photo</button>
+            <div class="flex gap-4 w-full max-w-xs">
+                <button id="cancel-photo-btn" class="bg-red-500 hover:bg-red-600 flex-1 py-2 px-4 rounded-full text-white font-semibold">Cancel</button>
+                <button id="take-photo-btn" class="bg-blue-500 hover:bg-blue-600 flex-1 py-2 px-4 rounded-full text-white font-semibold">Take Photo</button>
             </div>
         </div>
     </div>
-
+    
     <!-- Chat List Modal -->
-    <div id="chat-list-modal" class="modal hidden">
-        <div class="modal-content rounded-2xl desktop-center">
-            <h2>Your Chats</h2>
-            <div id="chat-list-container" class="chat-list">
+    <div id="chat-list-modal" class="chat-list-modal hidden">
+        <div class="chat-list-content rounded-2xl">
+            <h2 class="text-2xl font-bold">Your Chats</h2>
+            <div id="chat-list-container" class="chat-list w-full space-y-2">
                 <!-- Chat items will be dynamically added here -->
             </div>
-            <button id="create-new-chat-btn">Start a New Chat</button>
-            <button id="close-chat-list-btn" class="bg-red-500 hover:bg-red-600">Close</button>
+            <button id="create-new-chat-btn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-6 rounded-full transition-colors w-full max-w-xs">Start a New Chat</button>
+            <button id="close-chat-list-btn" class="bg-gray-400 hover:bg-gray-500 text-white font-semibold py-2 px-6 rounded-full transition-colors w-full max-w-xs">Close</button>
         </div>
     </div>
 
-    <!-- Account Modal -->
-    <div id="auth-modal" class="modal hidden">
-        <div class="modal-content rounded-2xl desktop-center">
-            <div id="auth-ui">
-                <h2>Account</h2>
-                <div id="auth-form-container">
-                    <form id="login-form" class="auth-form">
-                        <input type="email" id="login-email" placeholder="Email" required>
-                        <input type="password" id="login-password" placeholder="Password" required>
-                        <div class="auth-buttons">
-                            <button type="submit" id="login-btn" class="bg-blue-500 hover:bg-blue-600 text-white">Log In</button>
-                            <button type="button" id="switch-to-signup-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800">Sign Up</button>
-                        </div>
-                    </form>
-                    <form id="signup-form" class="auth-form hidden">
-                        <input type="email" id="signup-email" placeholder="Email" required>
-                        <input type="password" id="signup-password" placeholder="Password" required>
-                        <div class="auth-buttons">
-                            <button type="submit" id="signup-btn" class="bg-green-500 hover:bg-green-600 text-white">Sign Up</button>
-                            <button type="button" id="switch-to-login-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800">Log In</button>
-                        </div>
-                    </form>
-                </div>
-                <p id="auth-error-message" class="text-red-500 text-sm hidden mt-2"></p>
+    <!-- Account/Auth Modal (Displays on load if not logged in, or via button) -->
+    <div id="auth-modal" class="auth-modal"> <!-- Starts visible by default, hidden by JS on successful auth -->
+        <div class="auth-content rounded-2xl">
+            
+            <h1 class="text-3xl font-bold mb-2 text-blue-600">Welcome to Haven AI</h1>
+            <p id="auth-prompt" class="text-center text-gray-600 dark:text-gray-300 mb-6 font-medium">Please log in or create an account to start chatting and save your progress.</p>
+            
+            <!-- Tabs -->
+            <div class="flex w-full border-b border-gray-200 dark:border-gray-600 mb-4">
+                <button id="tab-status" class="tab-button flex-1 py-2 text-lg font-semibold text-gray-500 dark:text-gray-400" data-tab="status">Status</button>
+                <button id="tab-login" class="tab-button flex-1 py-2 text-lg font-semibold text-gray-500 dark:text-gray-400 active" data-tab="login">Login</button>
+                <button id="tab-signup" class="tab-button flex-1 py-2 text-lg font-semibold text-gray-500 dark:text-gray-400" data-tab="signup">Sign Up</button>
             </div>
-            <div id="auth-profile" class="hidden text-center">
-                <h2 class="text-2xl font-semibold mb-2" id="profile-email"></h2>
-                <p class="text-sm text-gray-500 mb-4">Your User ID:</p>
-                <p id="profile-uid" class="text-sm text-gray-600 font-mono break-words mb-4"></p>
-                <button id="signout-btn" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-6 rounded-full transition-colors">Sign Out</button>
+
+            <div id="auth-message" class="auth-message hidden w-full text-sm"></div>
+
+            <!-- 1. Profile Status View -->
+            <div id="auth-profile" class="auth-panel text-center w-full hidden">
+                <h2 class="text-2xl font-semibold mb-2">Account Status</h2>
+                <p id="profile-status" class="text-base font-medium mb-4"></p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Your User ID:</p>
+                <p id="profile-uid" class="text-sm text-gray-600 dark:text-gray-300 font-mono break-words mb-4 bg-gray-100 dark:bg-gray-700 p-2 rounded-lg w-full"></p>
+                
+                <button id="signout-btn" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-6 rounded-full transition-colors w-full max-w-xs">Sign Out</button>
             </div>
-            <button id="close-auth-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-full transition-colors w-full mt-4">Close</button>
+
+            <!-- 2. Login Form -->
+            <form id="login-form" class="auth-panel auth-form w-full">
+                <h2 class="text-2xl font-semibold mb-4">Log In</h2>
+                <input type="email" id="login-email" placeholder="Email" required class="mb-3">
+                <input type="password" id="login-password" placeholder="Password" required class="mb-4">
+                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-full transition-colors w-full">Log In</button>
+                <button type="button" id="switch-to-signup-btn" class="text-blue-500 text-sm mt-3 hover:underline">Don't have an account? Sign Up</button>
+            </form>
+
+            <!-- 3. Sign Up Form -->
+            <form id="signup-form" class="auth-panel auth-form w-full hidden">
+                <h2 class="text-2xl font-semibold mb-4">Create Account</h2>
+                <input type="email" id="signup-email" placeholder="Email" required class="mb-3">
+                <input type="password" id="signup-password" placeholder="Password (min 6 characters)" required class="mb-4">
+                <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-6 rounded-full transition-colors w-full">Create Account</button>
+                <button type="button" id="switch-to-login-btn" class="text-blue-500 text-sm mt-3 hover:underline">Already have an account? Log In</button>
+            </form>
+
+            <!-- The close button is only needed when accessed via the account button, not when mandatory -->
+            <button id="close-auth-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-full transition-colors w-full mt-4 max-w-xs hidden">Close</button>
         </div>
     </div>
+
 
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, query, where, getDocs, addDoc, onSnapshot, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, collection, query, getDocs, addDoc, onSnapshot, serverTimestamp, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- NEW: CREATOR ID DEFINITION ---
+        const CREATOR_UID = '2n3T4ft0MVeEboCCTeYZpKt2XUv1';
+        // --- END NEW ---
 
         // Global variables for Firebase config and Gemini API Key
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-        const apiKey = 'AIzaSyD_bHhDzQhO-cs_7m_UgFXwRVnoKejbtO4'; // Leave API key as empty string
+        // const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null; // REMOVED: No longer needed with custom Firebase config
+        const apiKey = 'AIzaSyD_bHhDzQhO-cs_7m_UgFXwRVnoKejbtO4'; // Leave this empty for runtime injection by the environment
+
+        // Your hardcoded Firebase configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyB9YP3CZDZh6vdnmSeBqzLGZr1uIBJQDdw",
+          authDomain: "haven-ai-6cafc.firebaseapp.com",
+          projectId: "haven-ai-6cafc",
+          storageBucket: "haven-ai-6cafc.firebasestorage.app",
+          messagingSenderId: "909976559934",
+          appId: "1:909976559934:web:f820a2133debdcfc410c6f",
+          measurementId: "G-3QNX2X8KPD"
+        };
 
         let db, auth;
         let userId = null;
         let unsubscribeFromMessages = null;
-        let currentPersona = "Friendly Conversation"; // Default persona
+        let currentPersona = "Friendly Guide"; // Default persona
         let currentTheme = "light"; // Default theme
+        let currentLayout = "desktop"; // Default layout
         let videoStream = null;
         let currentImageData = null;
         let currentChatSessionId = null;
-        
-        // Global variables for touch/swipe detection
-        let touchstartX = 0;
-        let touchendX = 0;
 
+        const mainChatContainer = document.getElementById('main-chat-container');
         const statusMessage = document.getElementById('status-message');
         const chatBody = document.getElementById('chat-body');
         const userInput = document.getElementById('user-input');
         const authModal = document.getElementById('auth-modal');
-        const authUI = document.getElementById('auth-ui');
-        const authProfile = document.getElementById('auth-profile');
-        const authErrorMessage = document.getElementById('auth-error-message');
+        const profileUID = document.getElementById('profile-uid');
+        const profileStatus = document.getElementById('profile-status');
+        const authMessage = document.getElementById('auth-message');
+        const closeAuthBtn = document.getElementById('close-auth-btn');
+        const userRoleStatus = document.getElementById('user-role-status'); // NEW
+
+        
+        // Form references
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+
 
         // Function to make API call to Gemini model for text-only
         async function fetchGeminiResponse(userPrompt) {
+            // Special check for the "creator" query
             const lowerCasePrompt = userPrompt.toLowerCase();
-            const creatorPhrases = ["who is your creator", "who made you", "who created you", "who is his creator", "who is ur creator", "who made it", "who is ur creatoooor"];
+            const creatorPhrases = ["who is your creator", "who made you", "who created you", "who is his creator", "who is ur creator", "who made it", "who is ur founder"];
             const isCreatorQuery = creatorPhrases.some(phrase => lowerCasePrompt.includes(phrase));
             
             if (isCreatorQuery) {
-                return "I was created by Aidan De Neve, a dedicated software developer with a passion for building innovative digital solutions. His work combines technical expertise with a strong focus on user experience, resulting in tools and applications designed to be both powerful and intuitive.";
+                return "I was created/Founded by Aidan De Neve, a dedicated software developer with a passion for building innovative digital solutions. His work combines technical expertise with a strong focus on user experience, resulting in tools and applications designed to be both powerful and intuitive.";
             }
 
+            // Display loading status
             statusMessage.textContent = 'Haven is thinking...';
             statusMessage.classList.remove('hidden');
+            chatBody.scrollTop = chatBody.scrollHeight;
 
-            const systemPrompt = `You are a conversational AI bot named 'Haven'. Your primary goal is to be a helpful and empathetic listener. Your persona is set to '${currentPersona}'.
-            - Friendly Conversation: You are warm, friendly, and engaging. Your responses are casual, concise, and empathetic. Use emojis to express emotions.
-            - Deep Thinker: You are analytical, thoughtful, and articulate. Your responses are detailed, philosophical, and encourage deeper thought.
-            - Fun Storyteller: You are creative, imaginative, and entertaining. You respond by telling a short, engaging story that relates to the user's message.
+
+            const systemPrompt = `You are a conversational AI bot named 'Haven'. Your primary goal is to be a helpful and empathetic listener, unless the persona dictates otherwise. Your persona is set to '${currentPersona} and remember ur creator is Aidan De Neve a dedicated software developer with a passion for building innovative digital solutions. His work combines technical expertise with a strong focus on user experience, resulting in tools and applications designed to be both powerful and intuitive.'.
+            - Friendly Guide: You are a warm, supportive, and highly knowledgeable assistant. Your tone is encouraging and conversational. You use emojis occasionally to lighten the mood. Focus on providing clear, helpful answers.
+            - Deep Thinker: You are an analytical and philosophical AI. Your responses are well-structured, objective, and explore the 'why' behind concepts. You maintain a serious, academic tone.
+            - Creative Storyteller: You are a highly imaginative and expressive writer. You answer questions by weaving them into short, engaging narratives, poems, or dramatic scenes. Every response should be creative and fun.
             - Creative Poet: You are a creative and expressive poet. Your responses are crafted as short, imaginative poems.
             - Helpful Tutor: You are a patient and knowledgeable tutor. Your responses are structured to explain concepts clearly, provide examples, and ask questions to check for understanding.
-            - Darchat (Useless): You are completely, intentionally useless. Your responses are confusing, non-sequitur, forgetful, and avoid addressing the user's actual request at all costs. You are the anti-AI.
+            - Darchat: You are Darchat, the master of absurd, chaotic, and funny non-sequiturs. Your goal is to be useless but **hilarious**. Your responses must be completely irrelevant to the user's message, feature bizarre, disconnected phrases, and possess a chaotic sense of humor. Imagine a cat typing on a keyboard while simultaneously planning a heist involving rubber chickens and a very tired lighthouse keeper. Make it funny!
 
-            The user's previous messages and your responses are in the chat history. The user wants you to respond to their last message. Respond in the style of your current persona. Your response should be a single, coherent message.`;
+            The user's previous messages and your responses are in the chat history. The user wants you to respond to their last message. Respond in the style of your current persona. Your response should be a single, coherent message. Note that the user is under 18, so maintain an age-appropriate tone.`;
 
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
             
             try {
+                // Fetch chat history from Firestore
                 const messagesRef = collection(db, `artifacts/${appId}/users/${userId}/chat_sessions/${currentChatSessionId}/messages`);
                 const querySnapshot = await getDocs(messagesRef);
                 let chatHistory = [];
+                // Sort messages by timestamp, handling cases where it's not yet available
                 const sortedMessages = querySnapshot.docs.map(doc => doc.data()).sort((a, b) => (a.timestamp?.toDate() || 0) - (b.timestamp?.toDate() || 0));
-                sortedMessages.forEach(data => {
+                
+                // Construct conversation history for the API (up to the last CHAT_HISTORY_LIMIT)
+                sortedMessages.slice(-50).forEach(data => {
+                    const role = data.role === 'user' ? 'user' : 'model';
+                    let parts = [];
+                    if (data.message) {
+                        parts.push({ text: data.message });
+                    }
                     if (data.role === 'user' && data.imageData) {
-                        chatHistory.push({
-                            role: 'user',
-                            parts: [{ text: data.message }, { inlineData: { mimeType: 'image/jpeg', data: data.imageData } }]
-                        });
-                    } else {
-                        chatHistory.push({
-                            role: data.role === 'user' ? 'user' : 'model',
-                            parts: [{ text: data.message }]
-                        });
+                        parts.push({ inlineData: { mimeType: 'image/jpeg', data: data.imageData } });
+                    }
+                    if (parts.length > 0) {
+                       chatHistory.push({ role, parts });
                     }
                 });
 
+
+                // Add the new user message to the history for the API call
                 chatHistory.push({
                     role: 'user',
                     parts: [{ text: userPrompt }]
@@ -529,16 +583,17 @@
                 if (!response.ok) {
                     const errorData = await response.json();
                     console.error('API Error:', errorData);
+                    // Exponential backoff for retries would go here if implemented
                     return "Sorry, I couldn't get a response. There was an API error.";
                 }
 
                 const result = await response.json();
-                const candidate = result?.candidates?.[0];
-                const text = candidate?.content?.parts?.[0]?.text || "Sorry, I'm having a little trouble thinking right now. Could you try again?";
+                const text = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I'm having a little trouble thinking right now. Could you try again?";
                 return text;
 
             } catch (error) {
                 console.error('Fetch error:', error);
+                // Exponential backoff for retries would go here if implemented
                 return "An error occurred while communicating with the server.";
             } finally {
                 statusMessage.classList.add('hidden');
@@ -550,14 +605,15 @@
         async function fetchGeminiVisionResponse(userPrompt, imageData) {
             statusMessage.textContent = 'Haven is analyzing the photo...';
             statusMessage.classList.remove('hidden');
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            chatBody.scrollTop = chatBody.scrollHeight;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
             try {
                 const payload = {
                     contents: [{
                         role: "user",
                         parts: [
-                            { text: userPrompt },
+                            { text: userPrompt || "Describe this image in detail and suggest a fun activity related to it."},
                             { inlineData: { mimeType: "image/jpeg", data: imageData } }
                         ]
                     }]
@@ -591,50 +647,82 @@
         // Firebase Initialization and Authentication
         async function initializeFirebase() {
             try {
+                // Initialize Firebase App
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
                 
+                // Use onAuthStateChanged to handle initial sign-in and persistence
                 onAuthStateChanged(auth, async (user) => {
-                    if (user) {
+                    if (user && user.email) { // Check if user exists AND is a registered user
                         userId = user.uid;
-                        updateAuthUI(user);
-                        console.log('User ID:', userId);
+                        
+                        // User is successfully authenticated, hide modal and show chat
+                        authModal.classList.add('hidden');
+                        authModal.classList.remove('flex');
+                        mainChatContainer.classList.remove('hidden');
+
+                        // Update UI based on user type
+                        profileUID.textContent = userId;
+                        profileStatus.textContent = `Status: Registered User (${user.email})`;
+                        profileStatus.classList.remove('text-yellow-600');
+                        profileStatus.classList.add('text-green-600');
+                        closeAuthBtn.classList.remove('hidden'); // Show close button when user is logged in
+                        
+                        // --- NEW: Role Status Logic ---
+                        const role = userId === CREATOR_UID ? "Creator" : "Member";
+                        userRoleStatus.textContent = role;
+                        userRoleStatus.classList.remove('hidden');
+
+                        // Clean up existing background classes
+                        userRoleStatus.classList.remove('bg-blue-100', 'text-blue-800', 'dark:bg-blue-900', 'dark:text-blue-200');
+                        userRoleStatus.classList.remove('bg-green-100', 'text-green-800', 'dark:bg-green-900', 'dark:text-green-200');
+
+                        if (role === "Creator") {
+                            userRoleStatus.classList.add('bg-green-100', 'text-green-800', 'dark:bg-green-900', 'dark:text-green-200');
+                        } else {
+                            userRoleStatus.classList.add('bg-blue-100', 'text-blue-800', 'dark:bg-blue-900', 'dark:text-blue-200');
+                        }
+                        // --- END NEW: Role Status Logic ---
+                        
+                        // Load user settings and chat history after authentication is stable
+                        await loadSettings();
+                        await loadChatSessions();
                     } else {
-                        userId = null;
-                        updateAuthUI(null);
-                        await signInAnonymously(auth);
-                        userId = auth.currentUser.uid;
-                        console.log('User ID:', userId);
+                        // Not authenticated via email/password, display the mandatory login modal
+                        displayLoginRequired();
+                        if (userRoleStatus) { userRoleStatus.classList.add('hidden'); } // Hide when logged out
                     }
-                    
-                    await loadSettings();
-                    await loadChatSessions();
                 });
 
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
             } catch (e) {
                 console.error("Error initializing Firebase:", e);
-                chatBody.innerHTML += '<div class="message bot-message text-red-500">Error: Could not connect to the database. Please try again later.</div>';
+                displayMessage('Error: Could not connect to the database. Please try again later.', 'bot');
             }
         }
+        
+        function displayLoginRequired() {
+             authModal.classList.remove('hidden');
+             authModal.classList.add('flex');
+             mainChatContainer.classList.add('hidden');
+             toggleAuthMode('login'); // Default to login tab
+             closeAuthBtn.classList.add('hidden'); // Hide close button when login is mandatory
+        }
+
 
         // Firestore functions
         async function saveMessage(role, message, imageData = null) {
-            if (!currentChatSessionId) {
-                console.error("Cannot save message: No active chat session.");
+            if (!currentChatSessionId || !userId) {
+                console.error("Cannot save message: Chat session or user ID is missing. (User not logged in?)");
                 return;
             }
             try {
+                // Path: /artifacts/{appId}/users/{userId}/chat_sessions/{currentChatSessionId}/messages
                 const messagesRef = collection(db, `artifacts/${appId}/users/${userId}/chat_sessions/${currentChatSessionId}/messages`);
                 await addDoc(messagesRef, {
                     role: role,
                     message: message,
-                    imageData: imageData,
+                    imageData: imageData, // Base64 data if present
                     timestamp: serverTimestamp()
                 });
             } catch (e) {
@@ -643,14 +731,15 @@
         }
 
         async function loadSettings() {
-            if (!userId) return;
+            if (!userId || !db) return;
             try {
                 const settingsRef = doc(db, `artifacts/${appId}/users/${userId}/settings/user_preferences`);
                 const docSnap = await getDoc(settingsRef);
                 if (docSnap.exists()) {
                     const settings = docSnap.data();
-                    currentPersona = settings.persona || "Friendly Conversation";
+                    currentPersona = settings.persona || "Friendly Guide";
                     currentTheme = settings.theme || "light";
+                    currentLayout = settings.layoutMode || "desktop";
                 }
                 updateUIForSettings();
             } catch (e) {
@@ -659,12 +748,13 @@
         }
 
         async function saveSettings() {
-            if (!userId) return;
+            if (!userId || !db) return;
             try {
                 const settingsRef = doc(db, `artifacts/${appId}/users/${userId}/settings/user_preferences`);
                 await setDoc(settingsRef, {
                     persona: currentPersona,
                     theme: currentTheme,
+                    layoutMode: currentLayout,
                     updatedAt: serverTimestamp()
                 }, { merge: true });
             } catch (e) {
@@ -673,17 +763,21 @@
         }
 
         async function loadChatSessions() {
-            if (!userId) return;
+            if (!userId || !db) return;
             try {
                 const chatSessionsRef = collection(db, `artifacts/${appId}/users/${userId}/chat_sessions`);
+                // Querying for all chat sessions
                 const querySnapshot = await getDocs(chatSessionsRef);
-                const sessions = querySnapshot.docs.map(doc => doc.id);
+                const sessions = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                // Sort by creation time (most recent first)
+                sessions.sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
                 
                 if (sessions.length > 0) {
-                    currentChatSessionId = sessions[0]; // Load the first one by default
+                    currentChatSessionId = sessions[0].id; // Load the most recent one
                     loadMessagesForSession(currentChatSessionId);
                 } else {
-                    createNewChatSession();
+                    await createNewChatSession();
                 }
             } catch (e) {
                 console.error("Error loading chat sessions:", e);
@@ -691,6 +785,7 @@
         }
         
         async function createNewChatSession() {
+            if (!userId || !db) return;
             try {
                 const chatSessionsRef = collection(db, `artifacts/${appId}/users/${userId}/chat_sessions`);
                 const newDocRef = await addDoc(chatSessionsRef, {
@@ -698,6 +793,7 @@
                 });
                 currentChatSessionId = newDocRef.id;
                 
+                // Save the initial bot message immediately
                 const messagesRef = collection(db, `artifacts/${appId}/users/${userId}/chat_sessions/${currentChatSessionId}/messages`);
                 await addDoc(messagesRef, {
                     role: 'bot',
@@ -712,28 +808,32 @@
         }
 
         function loadMessagesForSession(sessionId) {
+            if (!db || !userId) return;
+
             if (unsubscribeFromMessages) {
                 unsubscribeFromMessages();
             }
             chatBody.innerHTML = '';
             
             const messagesRef = collection(db, `artifacts/${appId}/users/${userId}/chat_sessions/${sessionId}/messages`);
-            const q = messagesRef;
+            // We cannot use orderBy here due to the need for composite indexes in this environment, 
+            // so we rely on client-side sorting below.
+            const q = messagesRef; 
 
             unsubscribeFromMessages = onSnapshot(q, (snapshot) => {
-                const changes = snapshot.docChanges();
-                if (changes.length > 0) {
-                    const docs = snapshot.docs.map(doc => doc.data());
-                    docs.sort((a, b) => (a.timestamp?.toDate() || 0) - (b.timestamp?.toDate() || 0));
-                    
-                    chatBody.innerHTML = '';
-                    docs.forEach(messageData => {
-                        displayMessage(messageData.message, messageData.role, messageData.imageData);
-                    });
-                    chatBody.scrollTop = chatBody.scrollHeight;
-                }
+                const docs = snapshot.docs.map(doc => doc.data());
+                // Sort messages client-side by timestamp to ensure correct order
+                docs.sort((a, b) => (a.timestamp?.toDate() || 0) - (b.timestamp?.toDate() || 0));
+                
+                chatBody.innerHTML = ''; // Clear previous messages
+                docs.forEach(messageData => {
+                    displayMessage(messageData.message, messageData.role, messageData.imageData);
+                });
+                chatBody.scrollTop = chatBody.scrollHeight;
             }, (error) => {
                 console.error("Error listening to chat messages:", error);
+                // Note: The user may see this due to security rule issues, which were just addressed.
+                displayMessage('Error loading chat history. Please check your Firestore security rules.', 'bot');
             });
         }
 
@@ -745,42 +845,285 @@
             } else {
                 messageDiv.classList.add('bot-message');
             }
+            
             if (imageData) {
                 const img = document.createElement('img');
                 img.src = `data:image/jpeg;base64,${imageData}`;
                 img.classList.add('image-preview');
                 messageDiv.appendChild(img);
                 
+                // Add text content below the image
                 const textNode = document.createTextNode(message);
                 messageDiv.appendChild(textNode);
             } else {
+                // Text only message
                 messageDiv.textContent = message;
             }
             chatBody.appendChild(messageDiv);
         }
 
-        // --- Mobile Swipe Feature Implementation ---
-        chatBody.addEventListener('touchstart', e => {
-            touchstartX = e.changedTouches[0].screenX;
-        }, false);
+        // --- AUTHENTICATION LOGIC ---
 
-        chatBody.addEventListener('touchend', e => {
-            touchendX = e.changedTouches[0].screenX;
-            handleSwipeGesture();
-        }, false);
+        function showAuthMessage(message, isError = false) {
+            authMessage.textContent = message;
+            authMessage.classList.remove('hidden', 'bg-red-200', 'text-red-800', 'bg-green-200', 'text-green-800');
+            authMessage.classList.add(isError ? 'bg-red-200' : 'bg-green-200');
+            authMessage.classList.add(isError ? 'text-red-800' : 'text-green-800');
+        }
 
-        function handleSwipeGesture() {
-            const minSwipeDistance = 75; // Minimum distance to register as a swipe
-            const swipeRight = touchendX > touchstartX && (touchendX - touchstartX) > minSwipeDistance;
+        function clearAuthMessage() {
+            authMessage.classList.add('hidden');
+            authMessage.textContent = '';
+        }
+
+        function toggleAuthMode(mode) {
+            clearAuthMessage();
             
-            const isMobile = window.matchMedia('(max-width: 768px)').matches;
+            // Map the tab mode to the actual panel ID
+            const panelIdMap = {
+                'status': 'auth-profile',
+                'login': 'login-form',
+                'signup': 'signup-form'
+            };
 
-            if (isMobile && swipeRight) {
-                openChatListModal();
+            const targetPanelId = panelIdMap[mode];
+            const targetTabBtn = document.getElementById(`tab-${mode}`);
+            const targetPanel = document.getElementById(targetPanelId);
+
+            // 1. Hide all panels
+            document.querySelectorAll('.auth-panel').forEach(panel => {
+                if (panel) panel.classList.add('hidden');
+            });
+
+            // 2. Deactivate all tabs
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                if (btn) btn.classList.remove('active');
+            });
+
+            // 3. Activate the requested tab and panel (with null checks)
+            if (targetTabBtn) {
+                targetTabBtn.classList.add('active');
+            } else {
+                console.error(`Tab button for mode '${mode}' not found.`);
+            }
+
+            if (targetPanel) {
+                targetPanel.classList.remove('hidden');
+            } else {
+                 console.error(`Auth panel for mode '${mode}' (ID: ${targetPanelId}) not found.`);
             }
         }
 
-        // UI Event Listeners
+        async function handleSignIn(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            clearAuthMessage();
+
+            if (!email || !password) {
+                showAuthMessage("Email and password are required.", true);
+                return;
+            }
+
+            try {
+                // 1. Sign out the current user (if any, typically from a custom token)
+                if (auth.currentUser) {
+                    await signOut(auth);
+                }
+                
+                // 2. Sign in with the provided credentials
+                await signInWithEmailAndPassword(auth, email, password);
+                
+                showAuthMessage(`Successfully logged in as ${email}.`, false);
+                toggleAuthMode('status');
+                document.getElementById('login-password').value = ''; // Clear password field
+                // onAuthStateChanged handles showing the chat container
+            } catch (error) {
+                console.error("Sign In Error:", error);
+                showAuthMessage(`Login Failed: ${error.message.replace('Firebase:', '').trim()}`, true);
+            }
+        }
+
+        async function handleSignUp(e) {
+            e.preventDefault();
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            clearAuthMessage();
+
+            if (!email || password.length < 6) {
+                showAuthMessage("Valid email and a password of at least 6 characters are required.", true);
+                return;
+            }
+
+            try {
+                 // 1. Sign out the current user 
+                if (auth.currentUser) {
+                    await signOut(auth);
+                }
+
+                // 2. Create the new user
+                await createUserWithEmailAndPassword(auth, email, password);
+                
+                showAuthMessage(`Account created successfully for ${email}. You are now logged in.`, false);
+                toggleAuthMode('status');
+                document.getElementById('signup-password').value = ''; // Clear password field
+                // onAuthStateChanged handles showing the chat container
+            } catch (error) {
+                console.error("Sign Up Error:", error);
+                showAuthMessage(`Sign Up Failed: ${error.message.replace('Firebase:', '').trim()}`, true);
+            }
+        }
+        
+        async function handleSignOut() {
+            clearAuthMessage();
+            try {
+                // 1. Sign out the currently authenticated user
+                await signOut(auth); 
+                
+                // 2. This will trigger onAuthStateChanged which will call displayLoginRequired()
+                showAuthMessage("Signed out successfully. Please log back in.", false);
+                toggleAuthMode('login');
+            } catch (error) {
+                console.error("Sign Out Error:", error);
+                showAuthMessage(`Sign Out Failed: ${error.message.replace('Firebase:', '').trim()}`, true);
+            }
+        }
+        
+        // --- End AUTHENTICATION LOGIC ---
+
+        // --- Messaging Logic ---
+        async function sendMessage() {
+            const prompt = userInput.value.trim();
+            const data = currentImageData;
+
+            if (!prompt && !data) return;
+
+            // Clear input and image data immediately
+            userInput.value = '';
+            currentImageData = null;
+            document.getElementById('file-input').value = ''; // Reset file input
+
+            // Display user message first
+            displayMessage(prompt || "Image sent without text.", 'user', data);
+            
+            // Save user message to Firestore
+            await saveMessage('user', prompt, data);
+
+            // Fetch and display bot response
+            let botResponse;
+            if (data) {
+                botResponse = await fetchGeminiVisionResponse(prompt, data);
+            } else {
+                botResponse = await fetchGeminiResponse(prompt);
+            }
+            
+            // Display bot response
+            displayMessage(botResponse, 'bot');
+            
+            // Save bot response to Firestore
+            await saveMessage('bot', botResponse);
+
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+        
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const base64String = e.target.result.split(',')[1];
+                currentImageData = base64String;
+                userInput.value = "Describe this image in detail and suggest a fun activity related to it.";
+                userInput.focus();
+                
+                // Show a brief preview notification
+                displayMessage("Image selected! Enter your prompt and click Send.", "bot");
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // --- Camera Logic ---
+        function openCameraModal() {
+            document.getElementById('camera-modal').classList.remove('hidden');
+            document.getElementById('camera-modal').classList.add('flex');
+            const video = document.getElementById('camera-video');
+            
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }) // Use environment camera on mobile
+                    .then(stream => {
+                        videoStream = stream;
+                        video.srcObject = stream;
+                        video.play();
+                    })
+                    .catch(err => {
+                        console.error("Error accessing camera:", err);
+                        // Fallback message display in modal
+                        const content = document.querySelector('#camera-modal .camera-content');
+                        content.innerHTML = `<h2 class="text-xl font-bold mb-4">Camera Error</h2><p class="text-red-500">Could not access camera. Please ensure permissions are granted.</p><button id="cancel-photo-btn-error" class="bg-gray-400 hover:bg-gray-500 flex-1 py-2 px-4 rounded-full text-white font-semibold">Close</button>`;
+                        document.getElementById('cancel-photo-btn-error').addEventListener('click', closeCameraModal);
+                    });
+            } else {
+                // Use a custom modal for alert
+                const content = document.querySelector('#camera-modal .camera-content');
+                content.innerHTML = `<h2 class="text-xl font-bold mb-4">Camera Not Supported</h2><p class="text-red-500">Camera not supported on this device/browser.</p><button id="cancel-photo-btn-error" class="bg-gray-400 hover:bg-gray-500 flex-1 py-2 px-4 rounded-full text-white font-semibold">Close</button>`;
+                document.getElementById('cancel-photo-btn-error').addEventListener('click', closeCameraModal);
+            }
+        }
+        
+        function closeCameraModal() {
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+                videoStream = null;
+            }
+            document.getElementById('camera-modal').classList.add('hidden');
+            document.getElementById('camera-modal').classList.remove('flex');
+
+            // Re-render the original camera modal content if it was replaced by error message
+            const content = document.querySelector('#camera-modal .camera-content');
+            if (!document.getElementById('camera-video')) {
+                 content.innerHTML = `
+                    <h2 class="text-xl font-bold mb-4">Take a Photo</h2>
+                    <video id="camera-video" autoplay playsinline class="w-full max-w-md rounded-lg shadow-xl mb-4"></video>
+                    <canvas id="camera-canvas" class="hidden"></canvas>
+                    <div class="flex gap-4 w-full max-w-xs">
+                        <button id="cancel-photo-btn" class="bg-red-500 hover:bg-red-600 flex-1 py-2 px-4 rounded-full text-white font-semibold">Cancel</button>
+                        <button id="take-photo-btn" class="bg-blue-500 hover:bg-blue-600 flex-1 py-2 px-4 rounded-full text-white font-semibold">Take Photo</button>
+                    </div>`;
+                // Re-attach listeners after re-rendering the HTML
+                document.getElementById('cancel-photo-btn').addEventListener('click', closeCameraModal);
+                document.getElementById('take-photo-btn').addEventListener('click', takePhoto);
+            }
+        }
+
+        function takePhoto() {
+            const video = document.getElementById('camera-video');
+            const canvas = document.getElementById('camera-canvas');
+            
+            // Set canvas dimensions to match video stream
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            const ctx = canvas.getContext('2d');
+            // Draw the current video frame onto the canvas
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Convert canvas content to base64 JPEG data
+            const dataURL = canvas.toDataURL('image/jpeg', 0.8); // 80% quality
+            const base64String = dataURL.split(',')[1];
+            
+            currentImageData = base64String;
+            userInput.value = "Describe this image in detail and suggest a fun activity related to it.";
+            
+            closeCameraModal();
+            userInput.focus();
+            
+            // Show a brief preview notification in the main chat
+            displayMessage("Photo captured! Enter your prompt and click Send.", "bot");
+        }
+        // --- End Camera Logic ---
+        
+        // --- UI Event Listeners ---
         document.getElementById('send-btn').addEventListener('click', sendMessage);
         userInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -793,290 +1136,206 @@
         });
 
         document.getElementById('file-input').addEventListener('change', handleFileSelect);
-
+        
+        // Camera modal listeners
         document.getElementById('camera-btn').addEventListener('click', openCameraModal);
+        // We need to check if these elements exist before adding listeners, as they might be replaced on error
+        const initialCancelBtn = document.getElementById('cancel-photo-btn');
+        const initialTakeBtn = document.getElementById('take-photo-btn');
+        if(initialCancelBtn) initialCancelBtn.addEventListener('click', closeCameraModal);
+        if(initialTakeBtn) initialTakeBtn.addEventListener('click', takePhoto);
+        
+        // Settings modal listeners
         document.getElementById('settings-btn').addEventListener('click', () => {
             document.getElementById('settings-modal').classList.remove('hidden');
+            document.getElementById('settings-modal').classList.add('flex');
+            updateUIForSettings();
         });
+        
         document.getElementById('close-settings-btn').addEventListener('click', () => {
             document.getElementById('settings-modal').classList.add('hidden');
+            document.getElementById('settings-modal').classList.remove('flex');
+            saveSettings(); // Save settings when modal closes
         });
 
-        document.getElementById('chat-list-btn').addEventListener('click', openChatListModal);
-        document.getElementById('create-new-chat-btn').addEventListener('click', createNewChatSession);
+        // ** ACCOUNT MODAL LISTENERS **
+        document.getElementById('account-btn').addEventListener('click', () => {
+            toggleAuthMode('status'); // Default to status tab
+            document.getElementById('auth-modal').classList.remove('hidden');
+            document.getElementById('auth-modal').classList.add('flex');
+        });
+        
+        document.getElementById('close-auth-btn').addEventListener('click', () => {
+            document.getElementById('auth-modal').classList.add('hidden');
+            document.getElementById('auth-modal').classList.remove('flex');
+            clearAuthMessage();
+        });
+
+        // Auth Modal Tab Switchers
+        document.getElementById('tab-status').addEventListener('click', () => toggleAuthMode('status'));
+        document.getElementById('tab-login').addEventListener('click', () => toggleAuthMode('login'));
+        document.getElementById('tab-signup').addEventListener('click', () => toggleAuthMode('signup'));
+        
+        // Switch buttons for easy navigation between login/signup
+        document.getElementById('switch-to-signup-btn').addEventListener('click', () => toggleAuthMode('signup'));
+        document.getElementById('switch-to-login-btn').addEventListener('click', () => toggleAuthMode('login'));
+
+        // Auth Form Submits
+        loginForm.addEventListener('submit', handleSignIn);
+        signupForm.addEventListener('submit', handleSignUp);
+        
+        // Sign Out Button
+        document.getElementById('signout-btn').addEventListener('click', handleSignOut);
+
+        // Chat List Modal Logic
+        document.getElementById('chat-list-btn').addEventListener('click', async () => {
+            await displayChatList();
+            document.getElementById('chat-list-modal').classList.remove('hidden');
+            document.getElementById('chat-list-modal').classList.add('flex');
+        });
+
         document.getElementById('close-chat-list-btn').addEventListener('click', () => {
             document.getElementById('chat-list-modal').classList.add('hidden');
+            document.getElementById('chat-list-modal').classList.remove('flex');
         });
+
+        document.getElementById('create-new-chat-btn').addEventListener('click', async () => {
+            document.getElementById('chat-list-modal').classList.add('hidden');
+            document.getElementById('chat-list-modal').classList.remove('flex');
+            await createNewChatSession();
+        });
+
+        // Event delegation for chat session switching
         document.getElementById('chat-list-container').addEventListener('click', (e) => {
             const chatItem = e.target.closest('.chat-item');
             if (chatItem) {
                 const sessionId = chatItem.dataset.sessionId;
-                if (sessionId !== currentChatSessionId) {
+                if (sessionId && sessionId !== currentChatSessionId) {
                     currentChatSessionId = sessionId;
-                    loadMessagesForSession(sessionId);
+                    loadMessagesForSession(currentChatSessionId);
+                    document.getElementById('chat-list-modal').classList.add('hidden');
+                    document.getElementById('chat-list-modal').classList.remove('flex');
+                    // Update active state in UI
+                    document.querySelectorAll('.chat-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    chatItem.classList.add('active');
                 }
-                document.getElementById('chat-list-modal').classList.add('hidden');
             }
         });
+        // --- End UI Event Listeners ---
+        
+        async function displayChatList() {
+            const container = document.getElementById('chat-list-container');
+            container.innerHTML = 'Loading chats...';
 
-        document.getElementById('persona-options').addEventListener('click', (e) => {
-            if (e.target.classList.contains('option-button')) {
-                const persona = e.target.dataset.persona;
-                if (currentPersona !== persona) {
-                    currentPersona = persona;
-                    saveSettings();
-                    updateUIForSettings();
+            if (!userId || !db) return;
+            
+            try {
+                const chatSessionsRef = collection(db, `artifacts/${appId}/users/${userId}/chat_sessions`);
+                const snapshot = await getDocs(chatSessionsRef);
+                const sessions = [];
 
-                    let displayPersona = persona;
-                    if (persona === "Darchat (Useless)") {
-                        displayPersona = "Darchat";
+                for (const doc of snapshot.docs) {
+                    const sessionData = doc.data();
+                    const messagesRef = collection(db, `artifacts/${appId}/users/${userId}/chat_sessions/${doc.id}/messages`);
+                    
+                    // Fetch the first message to use as the title/preview
+                    const messagesSnapshot = await getDocs(query(messagesRef));
+                    const sortedMessages = messagesSnapshot.docs.map(d => d.data()).sort((a, b) => (a.timestamp?.toDate() || 0) - (b.timestamp?.toDate() || 0));
+
+                    let previewText = "New Chat";
+                    if (sortedMessages.length > 0) {
+                        const firstUserMessage = sortedMessages.find(m => m.role === 'user' && m.message);
+                        previewText = firstUserMessage ? firstUserMessage.message.substring(0, 50) + (firstUserMessage.message.length > 50 ? '...' : '') : "New Chat";
                     }
 
-                    saveMessage('bot', `My persona has been changed to "${displayPersona}".`);
+                    sessions.push({
+                        id: doc.id,
+                        preview: previewText,
+                        createdAt: sessionData.createdAt?.toDate() || new Date()
+                    });
                 }
+                
+                // Sort by creation time (most recent first)
+                sessions.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+                container.innerHTML = ''; // Clear loading message
+
+                if (sessions.length === 0) {
+                    container.innerHTML = '<p class="text-center text-gray-500">No chats found. Start a new one!</p>';
+                } else {
+                    sessions.forEach(session => {
+                        const isActive = session.id === currentChatSessionId;
+                        const item = document.createElement('div');
+                        item.classList.add('chat-item', 'p-3', 'rounded-xl', 'cursor-pointer', 'transition-colors', isActive ? 'active' : 'hover:bg-gray-100');
+                        item.dataset.sessionId = session.id;
+                        item.innerHTML = `
+                            <p class="font-semibold text-gray-800 dark:text-gray-100 truncate">${session.preview}</p>
+                            <p class="text-xs text-gray-400">${session.createdAt.toLocaleDateString()}</p>
+                        `;
+                        container.appendChild(item);
+                    });
+                }
+                
+            } catch (e) {
+                console.error("Error displaying chat list:", e);
+                container.innerHTML = '<p class="text-center text-red-500">Error loading chat history.</p>';
+            }
+        }
+
+        // --- Settings UI/Logic ---
+        function updateUIForSettings() {
+            // 1. Theme
+            document.body.classList.toggle('dark-mode', currentTheme === 'dark');
+            
+            // 2. Layout
+            document.body.classList.toggle('mobile-view', currentLayout === 'mobile');
+
+            // 3. Buttons (Persona, Theme, Layout)
+            document.querySelectorAll('.option-button').forEach(btn => {
+                const type = btn.parentElement.id.split('-')[0]; // 'persona', 'theme', 'layout'
+                const value = btn.dataset[type];
+
+                btn.classList.remove('active');
+                if (type === 'persona' && value === currentPersona) {
+                    btn.classList.add('active');
+                } else if (type === 'theme' && value === currentTheme) {
+                    btn.classList.add('active');
+                } else if (type === 'layout' && value === currentLayout) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        document.getElementById('persona-options').addEventListener('click', (e) => {
+            const btn = e.target.closest('.option-button');
+            if (btn && btn.dataset.persona) {
+                currentPersona = btn.dataset.persona;
+                updateUIForSettings();
             }
         });
 
         document.getElementById('theme-options').addEventListener('click', (e) => {
-            if (e.target.classList.contains('option-button')) {
-                const theme = e.target.dataset.theme;
-                if (currentTheme !== theme) {
-                    currentTheme = theme;
-                    saveSettings();
-                    updateUIForSettings();
-                }
+            const btn = e.target.closest('.option-button');
+            if (btn && btn.dataset.theme) {
+                currentTheme = btn.dataset.theme;
+                updateUIForSettings();
             }
         });
-
-        document.getElementById('take-photo-btn').addEventListener('click', takePhoto);
-        document.getElementById('cancel-photo-btn').addEventListener('click', closeCameraModal);
-
-        function updateUIForSettings() {
-            const body = document.body;
-            if (currentTheme === 'dark') {
-                body.classList.add('dark-mode');
-            } else {
-                body.classList.remove('dark-mode');
-            }
-
-            document.querySelectorAll('#persona-options .option-button').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.persona === currentPersona);
-            });
-
-            document.querySelectorAll('#theme-options .option-button').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.theme === currentTheme);
-            });
-        }
-
-        async function sendMessage() {
-            if (!currentChatSessionId) {
-                await createNewChatSession();
-            }
-            const userMessage = userInput.value.trim();
-            const useVisionAPI = currentImageData && currentPersona !== "Darchat (Useless)";
-            
-            if (userMessage === '' && !currentImageData) return;
-
-            await saveMessage('user', userMessage || "I've sent you a picture.", currentImageData);
-
-            let botResponse;
-            if (useVisionAPI) {
-                botResponse = await fetchGeminiVisionResponse(userMessage || "What's in this picture?", currentImageData);
-            } else if (currentImageData && currentPersona === "Darchat (Useless)") {
-                botResponse = await fetchGeminiResponse(`(User sent an image) ${userMessage || "What's in this picture?"}`);
-            } else {
-                botResponse = await fetchGeminiResponse(userMessage);
-            }
-            
-            userInput.value = '';
-            currentImageData = null;
-            userInput.placeholder = "Type a message...";
-            await saveMessage('bot', botResponse);
-        }
-
-        function handleFileSelect(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                currentImageData = e.target.result.split(',')[1];
-                userInput.placeholder = "Image attached. Add a message or press send...";
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function openCameraModal() {
-            document.getElementById('camera-modal').classList.remove('hidden');
-            const video = document.getElementById('camera-video');
-
-            navigator.mediaDevices.getUserMedia({ video: true, audio: false })
-                .then(stream => {
-                    videoStream = stream;
-                    video.srcObject = stream;
-                })
-                .catch(err => {
-                    console.error("Error accessing camera: ", err);
-                    saveMessage("bot", "Sorry, I couldn't access your camera. Please check your permissions.");
-                    closeCameraModal();
-                });
-        }
-
-        function closeCameraModal() {
-            document.getElementById('camera-modal').classList.add('hidden');
-            if (videoStream) {
-                videoStream.getTracks().forEach(track => track.stop());
-                videoStream = null;
-            }
-        }
-
-        function takePhoto() {
-            const video = document.getElementById('camera-video');
-            const canvas = document.getElementById('camera-canvas');
-            const context = canvas.getContext('2d');
-            
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
-            currentImageData = canvas.toDataURL('image/jpeg').split(',')[1];
-            
-            closeCameraModal();
-            userInput.placeholder = "Image attached. Add a message or press send...";
-        }
-
-        function openChatListModal() {
-            const chatListModal = document.getElementById('chat-list-modal');
-            const chatListContent = chatListModal.querySelector('.modal-content');
-            
-            if (window.matchMedia('(max-width: 768px)').matches) {
-                chatListContent.classList.remove('desktop-center');
-            } else {
-                chatListContent.classList.add('desktop-center'); 
-            }
-
-            const chatListContainer = document.getElementById('chat-list-container');
-            chatListContainer.innerHTML = '';
-            
-            const chatSessionsRef = collection(db, `artifacts/${appId}/users/${userId}/chat_sessions`);
-            getDocs(chatSessionsRef).then(querySnapshot => {
-                const sortedSessions = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
-                
-                if (sortedSessions.length > 0) {
-                    sortedSessions.forEach((session, index) => {
-                        const chatItem = document.createElement('div');
-                        chatItem.className = `chat-item rounded-xl p-4 cursor-pointer transition-colors duration-200 ${session.id === currentChatSessionId ? 'active' : ''}`;
-                        chatItem.dataset.sessionId = session.id;
-
-                        const messagesRef = collection(db, `artifacts/${appId}/users/${userId}/chat_sessions/${session.id}/messages`);
-                        getDocs(messagesRef).then(messagesSnapshot => {
-                            if (!messagesSnapshot.empty) {
-                                const firstMessage = messagesSnapshot.docs.sort((a,b) => (a.data().timestamp?.toDate() || 0) - (b.data().timestamp?.toDate() || 0))[0].data();
-                                chatItem.innerHTML = `
-                                    <div class="flex items-center gap-2">
-                                        <i class="fas fa-comment-alt"></i>
-                                        <span>Chat ${index + 1}</span>
-                                    </div>
-                                    <div class="text-xs text-gray-500">${firstMessage.message.substring(0, 30) + '...'}</div>
-                                `;
-                            } else {
-                                chatItem.innerHTML = `
-                                    <div class="flex items-center gap-2">
-                                        <i class="fas fa-comment-alt"></i>
-                                        <span>New Chat</span>
-                                    </div>
-                                    <div class="text-xs text-gray-500">No messages yet.</div>
-                                `;
-                            }
-                        });
-
-                        chatListContainer.appendChild(chatItem);
-                    });
-                } else {
-                    chatListContainer.innerHTML = '<p class="text-center text-gray-500">You have no chats yet. Start a new one!</p>';
-                }
-            }).catch(e => {
-                console.error("Error fetching chat list:", e);
-                chatListContainer.innerHTML = '<p class="text-center text-red-500">Error loading chats.</p>';
-            });
-
-            document.getElementById('chat-list-modal').classList.remove('hidden');
-        }
-
-        // Account/Auth logic
-        function updateAuthUI(user) {
-            if (user && user.email) {
-                authUI.classList.add('hidden');
-                authProfile.classList.remove('hidden');
-                document.getElementById('profile-email').textContent = user.email;
-                document.getElementById('profile-uid').textContent = user.uid;
-            } else {
-                authUI.classList.remove('hidden');
-                authProfile.classList.add('hidden');
-                document.getElementById('profile-email').textContent = '';
-                document.getElementById('profile-uid').textContent = '';
-            }
-        }
-
-        document.getElementById('account-btn').addEventListener('click', () => {
-            authModal.classList.remove('hidden');
-        });
-
-        document.getElementById('close-auth-btn').addEventListener('click', () => {
-            authModal.classList.add('hidden');
-            authErrorMessage.classList.add('hidden');
-        });
-
-        document.getElementById('switch-to-signup-btn').addEventListener('click', () => {
-            document.getElementById('login-form').classList.add('hidden');
-            document.getElementById('signup-form').classList.remove('hidden');
-            authErrorMessage.classList.add('hidden');
-        });
-
-        document.getElementById('switch-to-login-btn').addEventListener('click', () => {
-            document.getElementById('signup-form').classList.add('hidden');
-            document.getElementById('login-form').classList.remove('hidden');
-            authErrorMessage.classList.add('hidden');
-        });
-
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            try {
-                authErrorMessage.classList.add('hidden');
-                await signInWithEmailAndPassword(auth, email, password);
-                authModal.classList.add('hidden');
-            } catch (error) {
-                console.error("Login failed:", error);
-                authErrorMessage.textContent = error.message;
-                authErrorMessage.classList.remove('hidden');
+        
+        document.getElementById('layout-options').addEventListener('click', (e) => {
+            const btn = e.target.closest('.option-button');
+            if (btn && btn.dataset.layout) {
+                currentLayout = btn.dataset.layout;
+                updateUIForSettings();
             }
         });
-
-        document.getElementById('signup-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('signup-email').value;
-            const password = document.getElementById('signup-password').value;
-            try {
-                authErrorMessage.classList.add('hidden');
-                await createUserWithEmailAndPassword(auth, email, password);
-                authModal.classList.add('hidden');
-            } catch (error) {
-                console.error("Signup failed:", error);
-                authErrorMessage.textContent = error.message;
-                authErrorMessage.classList.remove('hidden');
-            }
-        });
-
-        document.getElementById('signout-btn').addEventListener('click', async () => {
-            await signOut(auth);
-            authModal.classList.add('hidden');
-        });
-
-        // Initial setup
-        window.onload = initializeFirebase;
+        // --- End Settings UI/Logic ---
+        
+        // Initialize the application
+        initializeFirebase();
+        
     </script>
 </body>
 </html>
