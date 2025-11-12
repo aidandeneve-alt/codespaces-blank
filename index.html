@@ -299,6 +299,11 @@
                 <h1 class="text-xl font-semibold text-gray-800">Haven AI Bot</h1>
                 <!-- Role Status Badge (NEW) -->
                 <span id="user-role-status" class="text-xs font-medium px-2 py-0.5 rounded-full hidden"></span>
+                <!-- Weather Status (NEW) -->
+                <div id="weather-status" class="text-sm text-gray-600 dark:text-gray-300 flex items-center gap-1 ml-2">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <span id="weather-temp">Loading...</span>
+                </div>
             </div>
             <div class="flex items-center gap-4">
                 <!-- Account Button -->
@@ -366,7 +371,19 @@
                 </div>
             </div>
             
-            <!-- NEW LAYOUT OPTION -->
+            <!-- NEW CITY OPTION GROUP -->
+            <div class="settings-option">
+                <h3 class="text-lg font-semibold mb-2">City for Weather</h3>
+                <div id="city-options" class="option-group">
+                    <button class="option-button" data-city="New York">New York</button>
+                    <button class="option-button" data-city="Lelystad">Lelystad</button>
+                    <button class="option-button" data-city="London">London</button>
+                    <button class="option-button" data-city="Tokyo">Tokyo</button>
+                </div>
+            </div>
+            <!-- END NEW CITY OPTION GROUP -->
+
+            <!-- EXISTING LAYOUT OPTION -->
             <div class="settings-option">
                 <h3 class="text-lg font-semibold mb-2">Layout</h3>
                 <div id="layout-options" class="option-group">
@@ -460,13 +477,14 @@
         import { getAuth, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, collection, query, getDocs, addDoc, onSnapshot, serverTimestamp, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- NEW: CREATOR ID DEFINITION ---
+        // --- CREATOR ID DEFINITION ---
         const CREATOR_UID = '2n3T4ft0MVeEboCCTeYZpKt2XUv1';
+        // --- WEATHER API KEY DEFINITION (NEW) ---
+        const WEATHER_API_KEY = '9c5efcb178474446b5581046251211'; 
         // --- END NEW ---
 
         // Global variables for Firebase config and Gemini API Key
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        // const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null; // REMOVED: No longer needed with custom Firebase config
         const apiKey = 'AIzaSyD_bHhDzQhO-cs_7m_UgFXwRVnoKejbtO4'; // Leave this empty for runtime injection by the environment
 
         // Your hardcoded Firebase configuration
@@ -486,6 +504,7 @@
         let currentPersona = "Friendly Guide"; // Default persona
         let currentTheme = "light"; // Default theme
         let currentLayout = "desktop"; // Default layout
+        let currentCity = "New York"; // NEW: Default city for weather
         let videoStream = null;
         let currentImageData = null;
         let currentChatSessionId = null;
@@ -499,12 +518,64 @@
         const profileStatus = document.getElementById('profile-status');
         const authMessage = document.getElementById('auth-message');
         const closeAuthBtn = document.getElementById('close-auth-btn');
-        const userRoleStatus = document.getElementById('user-role-status'); // NEW
+        const userRoleStatus = document.getElementById('user-role-status'); 
+        const weatherStatusDiv = document.getElementById('weather-status'); // NEW
 
         
         // Form references
         const loginForm = document.getElementById('login-form');
         const signupForm = document.getElementById('signup-form');
+
+        // Function to fetch and display weather data (UPDATED to use city parameter)
+        async function fetchWeather(city) {
+            // Check if a city is provided, fall back to global if not (shouldn't happen post-init)
+            const cityToUse = city || currentCity; 
+            const apiUrl = `https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=${cityToUse}`;
+
+            try {
+                // Initial loading state
+                weatherStatusDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span id="weather-temp">Loading...</span>';
+                
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    // Check for specific API error codes (e.g., 400 for invalid key/city)
+                    const errorData = await response.json();
+                    throw new Error(errorData.error ? errorData.error.message : `Weather API returned status ${response.status}`);
+                }
+                const data = await response.json();
+                
+                const tempC = data.current.temp_c;
+                const conditionText = data.current.condition.text;
+                const locationName = data.location.name;
+
+                // Simple FontAwesome icon mapping based on condition text
+                let iconClass = 'fas fa-question text-gray-500';
+                if (conditionText.toLowerCase().includes('sun') || conditionText.toLowerCase().includes('clear')) {
+                    iconClass = 'fas fa-sun text-yellow-500';
+                } else if (conditionText.toLowerCase().includes('cloud') || conditionText.toLowerCase().includes('overcast')) {
+                    iconClass = 'fas fa-cloud text-gray-500';
+                } else if (conditionText.toLowerCase().includes('rain') || conditionText.toLowerCase().includes('drizzle')) {
+                    iconClass = 'fas fa-cloud-showers-heavy text-blue-500';
+                } else if (conditionText.toLowerCase().includes('snow') || conditionText.toLowerCase().includes('sleet')) {
+                    iconClass = 'fas fa-snowflake text-blue-300';
+                } else if (conditionText.toLowerCase().includes('mist') || conditionText.toLowerCase().includes('fog')) {
+                    iconClass = 'fas fa-smog text-gray-400';
+                }
+
+                // Update the weather status div
+                weatherStatusDiv.innerHTML = `
+                    <i class="${iconClass}"></i> 
+                    <span id="weather-temp">${tempC}°C in ${locationName}</span>
+                `;
+
+            } catch (error) {
+                console.error("Error fetching weather:", error);
+                weatherStatusDiv.innerHTML = `
+                    <i class="fas fa-exclamation-triangle text-red-500"></i> 
+                    <span id="weather-temp">Weather N/A</span>
+                `;
+            }
+        }
 
 
         // Function to make API call to Gemini model for text-only
@@ -669,8 +740,8 @@
                         profileStatus.classList.add('text-green-600');
                         closeAuthBtn.classList.remove('hidden'); // Show close button when user is logged in
                         
-                        // --- NEW: Role Status Logic ---
-                        const role = userId === CREATOR_UID ? "Creator" : "Standard User";
+                        // --- Role Status Logic ---
+                        const role = userId === CREATOR_UID ? "Creator" : "Member";
                         userRoleStatus.textContent = role;
                         userRoleStatus.classList.remove('hidden');
 
@@ -683,11 +754,16 @@
                         } else {
                             userRoleStatus.classList.add('bg-blue-100', 'text-blue-800', 'dark:bg-blue-900', 'dark:text-blue-200');
                         }
-                        // --- END NEW: Role Status Logic ---
+                        // --- END Role Status Logic ---
                         
                         // Load user settings and chat history after authentication is stable
                         await loadSettings();
                         await loadChatSessions();
+                        
+                        // --- Fetch Weather Data on successful login/load (UPDATED) ---
+                        await fetchWeather(currentCity); // Use loaded city setting
+                        // --- END UPDATE ---
+
                     } else {
                         // Not authenticated via email/password, display the mandatory login modal
                         displayLoginRequired();
@@ -740,6 +816,7 @@
                     currentPersona = settings.persona || "Friendly Guide";
                     currentTheme = settings.theme || "light";
                     currentLayout = settings.layoutMode || "desktop";
+                    currentCity = settings.city || "New York"; // NEW: Load current city
                 }
                 updateUIForSettings();
             } catch (e) {
@@ -755,6 +832,7 @@
                     persona: currentPersona,
                     theme: currentTheme,
                     layoutMode: currentLayout,
+                    city: currentCity, // NEW: Save current city
                     updatedAt: serverTimestamp()
                 }, { merge: true });
             } catch (e) {
@@ -1292,9 +1370,10 @@
             // 2. Layout
             document.body.classList.toggle('mobile-view', currentLayout === 'mobile');
 
-            // 3. Buttons (Persona, Theme, Layout)
+            // 3. Buttons (Persona, Theme, Layout, City)
             document.querySelectorAll('.option-button').forEach(btn => {
-                const type = btn.parentElement.id.split('-')[0]; // 'persona', 'theme', 'layout'
+                // Determine the type of setting (e.g., 'persona', 'theme', 'layout', 'city')
+                const type = Object.keys(btn.dataset).find(key => key.startsWith('data-') && key !== 'data-');
                 const value = btn.dataset[type];
 
                 btn.classList.remove('active');
@@ -1303,6 +1382,8 @@
                 } else if (type === 'theme' && value === currentTheme) {
                     btn.classList.add('active');
                 } else if (type === 'layout' && value === currentLayout) {
+                    btn.classList.add('active');
+                } else if (type === 'city' && value === currentCity) { // NEW CITY LOGIC
                     btn.classList.add('active');
                 }
             });
@@ -1329,6 +1410,17 @@
             if (btn && btn.dataset.layout) {
                 currentLayout = btn.dataset.layout;
                 updateUIForSettings();
+            }
+        });
+        
+        // NEW City Options Listener
+        document.getElementById('city-options').addEventListener('click', async (e) => {
+            const btn = e.target.closest('.option-button');
+            if (btn && btn.dataset.city) {
+                currentCity = btn.dataset.city;
+                updateUIForSettings();
+                await saveSettings();
+                await fetchWeather(currentCity); // Fetch new weather immediately
             }
         });
         // --- End Settings UI/Logic ---
